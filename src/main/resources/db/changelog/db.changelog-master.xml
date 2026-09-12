@@ -1,0 +1,332 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!-- ChangeSet 1: Create Users Table -->
+    <changeSet id="1-create-users-table" author="petshop-team">
+        <validCheckSum>1:any</validCheckSum>
+        <validCheckSum>ANY</validCheckSum>
+        <createTable tableName="users">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="full_name" type="VARCHAR(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="email" type="VARCHAR(150)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="phone" type="VARCHAR(30)"/>
+            <column name="password_hash" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="role" type="VARCHAR(30)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="avatar_url" type="VARCHAR(500)"/>
+            <column name="is_active" type="BOOLEAN" defaultValue="true"/>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP"/>
+        </createTable>
+    </changeSet>
+
+    <!-- ChangeSet 2: Create Categories Table -->
+    <changeSet id="2-create-categories-table" author="petshop-team">
+        <validCheckSum>1:any</validCheckSum>
+        <validCheckSum>ANY</validCheckSum>
+        <createTable tableName="categories">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="slug" type="VARCHAR(100)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="image_url" type="VARCHAR(500)"/>
+            <column name="type" type="VARCHAR(30)"><constraints nullable="false"/></column>
+        </createTable>
+    </changeSet>
+
+    <!-- ChangeSet 3: Create Stores Table -->
+    <changeSet id="3-create-stores-table" author="petshop-team">
+        <validCheckSum>1:any</validCheckSum>
+        <validCheckSum>ANY</validCheckSum>
+        <createTable tableName="stores">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="owner_id" type="BIGINT">
+                <constraints nullable="false" foreignKeyName="fk_stores_user" references="users(id)"/>
+            </column>
+            <column name="name" type="VARCHAR(150)"><constraints nullable="false"/></column>
+            <column name="slug" type="VARCHAR(150)"><constraints nullable="false" unique="true"/></column>
+            <column name="logo_url" type="VARCHAR(500)"/>
+            <column name="banner_url" type="VARCHAR(500)"/>
+            <column name="description" type="TEXT"/>
+            <column name="phone" type="VARCHAR(30)"/>
+            <column name="email" type="VARCHAR(150)"/>
+            <column name="address" type="VARCHAR(300)"/>
+            <column name="rating" type="DECIMAL(3,2)" defaultValue="5.0"/>
+        </createTable>
+    </changeSet>
+
+    <!-- ChangeSet 4: Create Products Table -->
+    <changeSet id="4-create-products-table" author="petshop-team">
+        <validCheckSum>1:any</validCheckSum>
+        <validCheckSum>ANY</validCheckSum>
+        <createTable tableName="products">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="store_id" type="BIGINT">
+                <constraints foreignKeyName="fk_products_store" references="stores(id)"/>
+            </column>
+            <column name="category_id" type="BIGINT">
+                <constraints foreignKeyName="fk_products_category" references="categories(id)"/>
+            </column>
+
+            <column name="title" type="VARCHAR(200)"><constraints nullable="false"/></column>
+            <column name="slug" type="VARCHAR(200)"/>
+            <column name="sku" type="VARCHAR(100)"/>
+            <column name="brand" type="VARCHAR(100)"/>
+            <column name="pet_type" type="VARCHAR(50)"/>
+            <column name="category_name" type="VARCHAR(100)"/>
+
+            <column name="price" type="DECIMAL(10,2)"><constraints nullable="false"/></column>
+            <column name="discount_price" type="DECIMAL(10,2)"/>
+            <column name="stock_quantity" type="INT" defaultValue="0"/>
+
+            <column name="badges" type="VARCHAR(255)"/>
+            <column name="sizes" type="VARCHAR(255)"/>
+            <column name="flavors" type="VARCHAR(255)"/>
+            <column name="images" type="TEXT"/>
+
+            <column name="description" type="TEXT"/>
+            <column name="key_benefits" type="TEXT"/>
+            <column name="guarantees" type="TEXT"/>
+            <column name="ingredients" type="TEXT"/>
+            <column name="nutrition_info" type="TEXT"/>
+            <column name="usage_guide" type="TEXT"/>
+
+            <column name="rating" type="DECIMAL(3,2)" defaultValue="5.0"/>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP"/>
+        </createTable>
+    </changeSet>
+
+    <!-- ChangeSet 5: Create Services Table -->
+    <changeSet id="5-create-services-table" author="petshop-team">
+        <validCheckSum>1:any</validCheckSum>
+        <validCheckSum>ANY</validCheckSum>
+        <createTable tableName="services">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="provider_id" type="BIGINT">
+                <constraints nullable="false" foreignKeyName="fk_services_provider" references="users(id)"/>
+            </column>
+            <column name="category_id" type="BIGINT">
+                <constraints foreignKeyName="fk_services_category" references="categories(id)"/>
+            </column>
+            <column name="title" type="VARCHAR(200)"><constraints nullable="false"/></column>
+            <column name="description" type="TEXT"/>
+            <column name="base_price" type="DECIMAL(10,2)"><constraints nullable="false"/></column>
+            <column name="duration_minutes" type="INT"/>
+            <column name="address" type="VARCHAR(300)"/>
+            <column name="amenities" type="TEXT"/>
+            <column name="rating" type="DECIMAL(3,2)" defaultValue="5.0"/>
+            <column name="emergency_service" type="BOOLEAN" defaultValue="false"/>
+        </createTable>
+    </changeSet>
+
+    <!-- ChangeSet 6: Create Bookings Table -->
+    <changeSet id="6-create-bookings-table" author="petshop-team">
+        <validCheckSum>1:any</validCheckSum>
+        <validCheckSum>ANY</validCheckSum>
+        <createTable tableName="bookings">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="buyer_id" type="BIGINT">
+                <constraints nullable="false" foreignKeyName="fk_bookings_buyer" references="users(id)"/>
+            </column>
+            <column name="service_id" type="BIGINT">
+                <constraints nullable="false" foreignKeyName="fk_bookings_service" references="services(id)"/>
+            </column>
+            <column name="booking_date" type="DATE"><constraints nullable="false"/></column>
+            <column name="start_time" type="TIME"><constraints nullable="false"/></column>
+            <column name="end_time" type="TIME"/>
+            <column name="status" type="VARCHAR(30)"><constraints nullable="false"/></column>
+            <column name="total_price" type="DECIMAL(10,2)"><constraints nullable="false"/></column>
+            <column name="notes" type="TEXT"/>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP"/>
+        </createTable>
+    </changeSet>
+
+    <!-- ChangeSet 7: Create Orders and Order Items Tables -->
+    <changeSet id="7-create-orders-table" author="petshop-team">
+        <validCheckSum>1:any</validCheckSum>
+        <validCheckSum>ANY</validCheckSum>
+        <createTable tableName="orders">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="buyer_id" type="BIGINT">
+                <constraints nullable="false" foreignKeyName="fk_orders_buyer" references="users(id)"/>
+            </column>
+            <column name="order_number" type="VARCHAR(50)"><constraints nullable="false" unique="true"/></column>
+            <column name="total_amount" type="DECIMAL(10,2)"><constraints nullable="false"/></column>
+            <column name="status" type="VARCHAR(30)"><constraints nullable="false"/></column>
+            <column name="payment_status" type="VARCHAR(30)"/>
+            <column name="shipping_address" type="TEXT"/>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP"/>
+        </createTable>
+
+        <createTable tableName="order_items">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="order_id" type="BIGINT">
+                <constraints nullable="false" foreignKeyName="fk_order_items_order" references="orders(id)"/>
+            </column>
+            <column name="product_id" type="BIGINT">
+                <constraints nullable="false" foreignKeyName="fk_order_items_product" references="products(id)"/>
+            </column>
+            <column name="unit_price" type="DECIMAL(10,2)"><constraints nullable="false"/></column>
+            <column name="quantity" type="INT"><constraints nullable="false"/></column>
+            <column name="subtotal" type="DECIMAL(10,2)"><constraints nullable="false"/></column>
+        </createTable>
+    </changeSet>
+
+    <!-- ChangeSet 8: Create User Addresses Table -->
+    <changeSet id="8-create-user-addresses-table" author="petshop-team">
+        <validCheckSum>1:any</validCheckSum>
+        <validCheckSum>ANY</validCheckSum>
+        <createTable tableName="user_addresses">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="user_id" type="BIGINT">
+                <constraints nullable="false" foreignKeyName="fk_user_addresses_user" references="users(id)"/>
+            </column>
+            <column name="title" type="VARCHAR(100)"/>
+            <column name="full_address" type="TEXT"/>
+            <column name="city" type="VARCHAR(100)"/>
+            <column name="is_default" type="BOOLEAN" defaultValue="false"/>
+        </createTable>
+    </changeSet>
+
+    <!-- ChangeSet 9: Create Schedules Table -->
+    <changeSet id="9-create-schedules-table" author="petshop-team">
+        <validCheckSum>1:any</validCheckSum>
+        <validCheckSum>ANY</validCheckSum>
+        <createTable tableName="schedules">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="provider_id" type="BIGINT">
+                <constraints nullable="false" foreignKeyName="fk_schedules_provider" references="users(id)"/>
+            </column>
+            <column name="day_of_week" type="VARCHAR(20)"><constraints nullable="false"/></column>
+            <column name="start_time" type="TIME"/>
+            <column name="end_time" type="TIME"/>
+            <column name="is_active" type="BOOLEAN" defaultValue="true"/>
+        </createTable>
+    </changeSet>
+
+    <!-- ChangeSet 10: Create Team Members Table -->
+    <changeSet id="10-create-team-members-table" author="petshop-team">
+        <validCheckSum>1:any</validCheckSum>
+        <validCheckSum>ANY</validCheckSum>
+        <createTable tableName="team_members">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="provider_id" type="BIGINT">
+                <constraints nullable="false" foreignKeyName="fk_team_members_provider" references="users(id)"/>
+            </column>
+            <column name="full_name" type="VARCHAR(150)"><constraints nullable="false"/></column>
+            <column name="role" type="VARCHAR(100)"/>
+            <column name="experience" type="VARCHAR(100)"/>
+            <column name="note" type="TEXT"/>
+            <column name="avatar" type="VARCHAR(500)"/>
+        </createTable>
+    </changeSet>
+
+    <!-- ChangeSet 11: Create Cart Items Table -->
+    <changeSet id="11-create-cart-items-table" author="petshop-team">
+        <validCheckSum>1:any</validCheckSum>
+        <validCheckSum>ANY</validCheckSum>
+        <createTable tableName="cart_items">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="user_id" type="BIGINT">
+                <constraints nullable="false" foreignKeyName="fk_cart_items_user" references="users(id)"/>
+            </column>
+            <column name="product_id" type="BIGINT">
+                <constraints nullable="false" foreignKeyName="fk_cart_items_product" references="products(id)"/>
+            </column>
+            <column name="quantity" type="INT"><constraints nullable="false"/></column>
+        </createTable>
+    </changeSet>
+
+    <!-- ChangeSet 12: Create Wishlist Table -->
+    <changeSet id="12-create-wishlist-table" author="petshop-team">
+        <validCheckSum>1:any</validCheckSum>
+        <validCheckSum>ANY</validCheckSum>
+        <createTable tableName="wishlist">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="user_id" type="BIGINT">
+                <constraints nullable="false" foreignKeyName="fk_wishlist_user" references="users(id)"/>
+            </column>
+            <column name="product_id" type="BIGINT">
+                <constraints nullable="false" foreignKeyName="fk_wishlist_product" references="products(id)"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <!-- ChangeSet 13: Create Blogs Table -->
+    <changeSet id="13-create-blogs-table" author="petshop-team">
+        <validCheckSum>1:any</validCheckSum>
+        <validCheckSum>ANY</validCheckSum>
+        <createTable tableName="blogs">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="author_id" type="BIGINT"/>
+            <column name="title" type="VARCHAR(255)"><constraints nullable="false"/></column>
+            <column name="slug" type="VARCHAR(255)"><constraints nullable="false" unique="true"/></column>
+            <column name="excerpt" type="VARCHAR(500)"/>
+            <column name="content" type="TEXT"/>
+            <column name="cover_image" type="VARCHAR(500)"/>
+            <column name="tags" type="VARCHAR(255)"/>
+            <column name="read_time" type="VARCHAR(50)"/>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP"/>
+        </createTable>
+    </changeSet>
+
+    <!-- ChangeSet 14: Create Reviews Table -->
+    <changeSet id="14-create-reviews-table" author="petshop-team">
+        <validCheckSum>1:any</validCheckSum>
+        <validCheckSum>ANY</validCheckSum>
+        <createTable tableName="reviews">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="user_id" type="BIGINT"><constraints nullable="false"/></column>
+            <column name="target_type" type="VARCHAR(50)"><constraints nullable="false"/></column>
+            <column name="target_id" type="BIGINT"><constraints nullable="false"/></column>
+            <column name="rating" type="INT"><constraints nullable="false"/></column>
+            <column name="comment" type="TEXT"/>
+            <column name="provider_reply" type="TEXT"/>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP"/>
+        </createTable>
+    </changeSet>
+
+</databaseChangeLog>

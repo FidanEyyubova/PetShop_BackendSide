@@ -1,0 +1,34 @@
+﻿server:
+  port: 8080
+
+spring:
+  application:
+    name: petshop-backend
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/petshop_db
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+  liquibase:
+    change-log: classpath:db/changelog/db.changelog-master.xml
+    enabled: true
+
+jwt:
+  secret: MySuperSecretKeyForPetShopJWTTokenGeneration2026MasterKey!
+  expiration: 86400000
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+  api-docs:
+    path: /v3/api-docs
