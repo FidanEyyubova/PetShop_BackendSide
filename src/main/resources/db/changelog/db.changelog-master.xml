@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <databaseChangeLog
         xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -329,4 +329,11 @@
         </createTable>
     </changeSet>
 
+
+    <!-- ChangeSet 15: Fix Users Password Column Nullable -->
+    <changeSet id="15-fix-users-password-column-nullable" author="petshop-team">
+        <validCheckSum>1:any</validCheckSum>
+        <validCheckSum>ANY</validCheckSum>
+        <dropNotNullConstraint tableName="users" columnName="password" columnDataType="VARCHAR(255)"/>
+    </changeSet>
 </databaseChangeLog>
