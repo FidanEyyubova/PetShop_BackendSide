@@ -19,17 +19,21 @@ public class Review {
     @Column(columnDefinition = "TEXT")
     private String comment;
 
+    @Column(columnDefinition = "TEXT")
+    private String providerReply;
+
     private LocalDateTime createdAt;
 
     public Review() {}
 
-    public Review(Long id, Long userId, String targetType, Long targetId, Integer rating, String comment, LocalDateTime createdAt) {
+    public Review(Long id, Long userId, String targetType, Long targetId, Integer rating, String comment, String providerReply, LocalDateTime createdAt) {
         this.id = id;
         this.userId = userId;
         this.targetType = targetType;
         this.targetId = targetId;
         this.rating = rating;
         this.comment = comment;
+        this.providerReply = providerReply;
         this.createdAt = createdAt;
     }
 
@@ -50,6 +54,8 @@ public class Review {
     public void setRating(Integer rating) { this.rating = rating; }
     public String getComment() { return comment; }
     public void setComment(String comment) { this.comment = comment; }
+    public String getProviderReply() { return providerReply; }
+    public void setProviderReply(String providerReply) { this.providerReply = providerReply; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 
@@ -62,6 +68,7 @@ public class Review {
         private Long targetId;
         private Integer rating;
         private String comment;
+        private String providerReply;
         private LocalDateTime createdAt;
 
         public ReviewBuilder id(Long id) { this.id = id; return this; }
@@ -70,10 +77,11 @@ public class Review {
         public ReviewBuilder targetId(Long targetId) { this.targetId = targetId; return this; }
         public ReviewBuilder rating(Integer rating) { this.rating = rating; return this; }
         public ReviewBuilder comment(String comment) { this.comment = comment; return this; }
+        public ReviewBuilder providerReply(String providerReply) { this.providerReply = providerReply; return this; }
         public ReviewBuilder createdAt(LocalDateTime createdAt) { this.createdAt = createdAt; return this; }
 
         public Review build() {
-            return new Review(id, userId, targetType, targetId, rating, comment, createdAt);
+            return new Review(id, userId, targetType, targetId, rating, comment, providerReply, createdAt);
         }
     }
 }

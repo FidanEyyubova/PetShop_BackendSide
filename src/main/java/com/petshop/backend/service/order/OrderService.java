@@ -11,4 +11,5 @@ public interface OrderService {
     OrderResponse createOrder(CreateOrderRequest request, UserPrincipal currentUser);
     PageResponse<OrderResponse> getUserOrders(UserPrincipal currentUser, @NonNull Pageable pageable);
     OrderResponse getOrderById(Long id, UserPrincipal currentUser);
+    OrderResponse cancelOrder(Long id, UserPrincipal currentUser);
 }

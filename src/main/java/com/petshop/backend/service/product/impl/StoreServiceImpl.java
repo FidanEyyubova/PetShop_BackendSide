@@ -21,6 +21,10 @@ public class StoreServiceImpl implements StoreService {
 
     private final StoreRepository storeRepository;
 
+    public StoreServiceImpl(StoreRepository storeRepository) {
+        this.storeRepository = storeRepository;
+    }
+
     @Override
     @Transactional
     public StoreResponse createStore(CreateStoreRequest request, UserPrincipal currentUser) {
@@ -46,10 +50,10 @@ public class StoreServiceImpl implements StoreService {
     @Transactional
     public StoreResponse updateStore(Long id, CreateStoreRequest request, UserPrincipal currentUser) {
         Store store = storeRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("MaÄŸaza tapÄ±lmadÄ±: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Store", "id", id));
 
         if (!store.getOwnerId().equals(currentUser.getId()) && !currentUser.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"))) {
-            throw new AccessDeniedCustomException("Bu maÄŸazanÄ± redaktÉ™ etmÉ™k sÉ™lahiyyÉ™tiniz yoxdur");
+            throw new AccessDeniedCustomException("You do not have permission to edit this store");
         }
 
         store.setName(request.getName());
@@ -68,7 +72,15 @@ public class StoreServiceImpl implements StoreService {
     @Transactional(readOnly = true)
     public StoreResponse getStoreById(Long id) {
         Store store = storeRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("MaÄŸaza tapÄ±lmadÄ±: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Store", "id", id));
+        return mapToStoreResponse(store);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public StoreResponse getMyStore(UserPrincipal currentUser) {
+        Store store = storeRepository.findByOwnerId(currentUser.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("You do not have a registered store profile yet"));
         return mapToStoreResponse(store);
     }
 
@@ -94,10 +106,10 @@ public class StoreServiceImpl implements StoreService {
     @Transactional
     public void deleteStore(Long id, UserPrincipal currentUser) {
         Store store = storeRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("MaÄŸaza tapÄ±lmadÄ±: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Store", "id", id));
 
         if (!store.getOwnerId().equals(currentUser.getId()) && !currentUser.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"))) {
-            throw new AccessDeniedCustomException("Bu maÄŸazanÄ± silmÉ™k sÉ™lahiyyÉ™tiniz yoxdur");
+            throw new AccessDeniedCustomException("You do not have permission to delete this store");
         }
 
         storeRepository.delete(store);
@@ -117,8 +129,5 @@ public class StoreServiceImpl implements StoreService {
                 .bannerUrl(store.getBannerUrl())
                 .rating(store.getRating())
                 .build();
-    }
-    public StoreServiceImpl(StoreRepository storeRepository) {
-        this.storeRepository = storeRepository;
     }
 }

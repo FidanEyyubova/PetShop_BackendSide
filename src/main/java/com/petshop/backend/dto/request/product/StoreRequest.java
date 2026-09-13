@@ -4,15 +4,15 @@ import jakarta.validation.constraints.NotBlank;
 
 public class StoreRequest {
 
-    @NotBlank(message = "MaÄŸaza adÄ± boÅŸ ola bilmÉ™z")
+    @NotBlank(message = "Store name cannot be blank")
     private String name;
 
     private String description;
 
-    @NotBlank(message = "Ãœnvan boÅŸ ola bilmÉ™z")
+    @NotBlank(message = "Address cannot be blank")
     private String address;
 
-    @NotBlank(message = "ÆlaqÉ™ nÃ¶mrÉ™si boÅŸ ola bilmÉ™z")
+    @NotBlank(message = "Phone cannot be blank")
     private String phone;
 
     private String email;

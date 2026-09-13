@@ -11,6 +11,7 @@ import java.util.List;
 public interface ReviewRepository extends JpaRepository<Review, Long> {
     List<Review> findByTargetTypeAndTargetId(String targetType, Long targetId);
     Page<Review> findByTargetTypeAndTargetId(String targetType, Long targetId, Pageable pageable);
+    Page<Review> findByUserId(Long userId, Pageable pageable);
 
     @Query("SELECT AVG(r.rating) FROM Review r WHERE r.targetType = :targetType AND r.targetId = :targetId")
     Double getAverageRating(@Param("targetType") String targetType, @Param("targetId") Long targetId);

@@ -7,7 +7,7 @@ import java.math.BigDecimal;
 
 public class CreateProductRequest {
 
-    @NotBlank(message = "MÉ™hsul adÄ± boÅŸ ola bilmÉ™z")
+    @NotBlank(message = "Product title cannot be blank")
     private String title;
 
     private String sku;
@@ -15,16 +15,18 @@ public class CreateProductRequest {
     private String petType;
     private String categoryName;
     private Long categoryId;
+    private String subCategoryName;
+    private Long subCategoryId;
     private Long storeId;
 
-    @NotNull(message = "QiymÉ™t mÃ¼tlÉ™qdir")
-    @Min(value = 0, message = "QiymÉ™t mÉ™nfi ola bilmÉ™z")
+    @NotNull(message = "Price is required")
+    @Min(value = 0, message = "Price cannot be negative")
     private BigDecimal price;
 
     private BigDecimal discountPrice;
 
-    @NotNull(message = "Stok sayÄ± mÃ¼tlÉ™qdir")
-    @Min(value = 0, message = "Stok mÉ™nfi ola bilmÉ™z")
+    @NotNull(message = "Stock quantity is required")
+    @Min(value = 0, message = "Stock cannot be negative")
     private Integer stockQuantity;
 
     private String badges;
@@ -61,6 +63,12 @@ public class CreateProductRequest {
 
     public Long getCategoryId() { return categoryId; }
     public void setCategoryId(Long categoryId) { this.categoryId = categoryId; }
+
+    public String getSubCategoryName() { return subCategoryName; }
+    public void setSubCategoryName(String subCategoryName) { this.subCategoryName = subCategoryName; }
+
+    public Long getSubCategoryId() { return subCategoryId; }
+    public void setSubCategoryId(Long subCategoryId) { this.subCategoryId = subCategoryId; }
 
     public Long getStoreId() { return storeId; }
     public void setStoreId(Long storeId) { this.storeId = storeId; }

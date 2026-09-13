@@ -1,4 +1,4 @@
-﻿server:
+server:
   port: 8080
 
 spring:
@@ -24,11 +24,12 @@ spring:
     enabled: true
 
 jwt:
-  secret: MySuperSecretKeyForPetShopJWTTokenGeneration2026MasterKey!
+  secret: MySuperSecretKeyForPetShopJWTTokenGeneration2026MasterKeyExtremelyLongSecureKey512BitRequirementFixed!
   expiration: 86400000
 
 springdoc:
   swagger-ui:
     path: /swagger-ui.html
+    operationsSorter: alpha
   api-docs:
     path: /v3/api-docs

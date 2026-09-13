@@ -15,6 +15,7 @@ public class Product {
     private Long vendorId;
     private Long storeId;
     private Long categoryId;
+    private Long subCategoryId;
 
     @Column(nullable = false)
     private String title;
@@ -41,6 +42,7 @@ public class Product {
     private Boolean isActive;
     private LocalDateTime createdAt;
     private String categoryName;
+    private String subCategoryName;
 
     private String badges;
     private String sizes;
@@ -53,11 +55,12 @@ public class Product {
 
     public Product() {}
 
-    public Product(Long id, Long vendorId, Long storeId, Long categoryId, String title, String slug, String sku, String brand, String petType, BigDecimal price, BigDecimal discountPrice, Integer stockQuantity, String description, String images, BigDecimal rating, Integer reviewCount, Boolean isActive, LocalDateTime createdAt, String categoryName, String badges, String sizes, String flavors, String keyBenefits, String guarantees, String ingredients, String nutritionInfo, String usageGuide) {
+    public Product(Long id, Long vendorId, Long storeId, Long categoryId, Long subCategoryId, String title, String slug, String sku, String brand, String petType, BigDecimal price, BigDecimal discountPrice, Integer stockQuantity, String description, String images, BigDecimal rating, Integer reviewCount, Boolean isActive, LocalDateTime createdAt, String categoryName, String subCategoryName, String badges, String sizes, String flavors, String keyBenefits, String guarantees, String ingredients, String nutritionInfo, String usageGuide) {
         this.id = id;
         this.vendorId = vendorId;
         this.storeId = storeId;
         this.categoryId = categoryId;
+        this.subCategoryId = subCategoryId;
         this.title = title;
         this.slug = slug;
         this.sku = sku;
@@ -73,6 +76,7 @@ public class Product {
         this.isActive = isActive;
         this.createdAt = createdAt;
         this.categoryName = categoryName;
+        this.subCategoryName = subCategoryName;
         this.badges = badges;
         this.sizes = sizes;
         this.flavors = flavors;
@@ -99,6 +103,8 @@ public class Product {
     public void setStoreId(Long storeId) { this.storeId = storeId; }
     public Long getCategoryId() { return categoryId; }
     public void setCategoryId(Long categoryId) { this.categoryId = categoryId; }
+    public Long getSubCategoryId() { return subCategoryId; }
+    public void setSubCategoryId(Long subCategoryId) { this.subCategoryId = subCategoryId; }
     public String getTitle() { return title; }
     public void setTitle(String title) { this.title = title; }
     public String getSlug() { return slug; }
@@ -129,6 +135,8 @@ public class Product {
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
     public String getCategoryName() { return categoryName; }
     public void setCategoryName(String categoryName) { this.categoryName = categoryName; }
+    public String getSubCategoryName() { return subCategoryName; }
+    public void setSubCategoryName(String subCategoryName) { this.subCategoryName = subCategoryName; }
     public String getBadges() { return badges; }
     public void setBadges(String badges) { this.badges = badges; }
     public String getSizes() { return sizes; }
@@ -153,6 +161,7 @@ public class Product {
         private Long vendorId;
         private Long storeId;
         private Long categoryId;
+        private Long subCategoryId;
         private String title;
         private String slug;
         private String sku;
@@ -168,6 +177,7 @@ public class Product {
         private Boolean isActive;
         private LocalDateTime createdAt;
         private String categoryName;
+        private String subCategoryName;
         private String badges;
         private String sizes;
         private String flavors;
@@ -181,6 +191,7 @@ public class Product {
         public ProductBuilder vendorId(Long vendorId) { this.vendorId = vendorId; return this; }
         public ProductBuilder storeId(Long storeId) { this.storeId = storeId; return this; }
         public ProductBuilder categoryId(Long categoryId) { this.categoryId = categoryId; return this; }
+        public ProductBuilder subCategoryId(Long subCategoryId) { this.subCategoryId = subCategoryId; return this; }
         public ProductBuilder title(String title) { this.title = title; return this; }
         public ProductBuilder slug(String slug) { this.slug = slug; return this; }
         public ProductBuilder sku(String sku) { this.sku = sku; return this; }
@@ -196,6 +207,7 @@ public class Product {
         public ProductBuilder isActive(Boolean isActive) { this.isActive = isActive; return this; }
         public ProductBuilder createdAt(LocalDateTime createdAt) { this.createdAt = createdAt; return this; }
         public ProductBuilder categoryName(String categoryName) { this.categoryName = categoryName; return this; }
+        public ProductBuilder subCategoryName(String subCategoryName) { this.subCategoryName = subCategoryName; return this; }
         public ProductBuilder badges(String badges) { this.badges = badges; return this; }
         public ProductBuilder sizes(String sizes) { this.sizes = sizes; return this; }
         public ProductBuilder flavors(String flavors) { this.flavors = flavors; return this; }
@@ -206,7 +218,7 @@ public class Product {
         public ProductBuilder usageGuide(String usageGuide) { this.usageGuide = usageGuide; return this; }
 
         public Product build() {
-            return new Product(id, vendorId, storeId, categoryId, title, slug, sku, brand, petType, price, discountPrice, stockQuantity, description, images, rating, reviewCount, isActive, createdAt, categoryName, badges, sizes, flavors, keyBenefits, guarantees, ingredients, nutritionInfo, usageGuide);
+            return new Product(id, vendorId, storeId, categoryId, subCategoryId, title, slug, sku, brand, petType, price, discountPrice, stockQuantity, description, images, rating, reviewCount, isActive, createdAt, categoryName, subCategoryName, badges, sizes, flavors, keyBenefits, guarantees, ingredients, nutritionInfo, usageGuide);
         }
     }
 }

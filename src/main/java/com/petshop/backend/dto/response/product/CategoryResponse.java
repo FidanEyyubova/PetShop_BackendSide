@@ -1,60 +1,48 @@
 package com.petshop.backend.dto.response.product;
 
+import java.time.LocalDateTime;
+import java.util.List;
+
 public class CategoryResponse {
+
     private Long id;
-    private String name;
+    private String title;
+    private String icon;
     private String slug;
-    private String imageUrl;
     private String type;
+    private List<SubCategoryResponse> subCategories;
+    private LocalDateTime createdAt;
 
-    public CategoryResponse() {
-    }
+    public CategoryResponse() {}
 
-    public CategoryResponse(Long id, String name, String slug, String imageUrl, String type) {
+    public CategoryResponse(Long id, String title, String icon, String slug, String type, List<SubCategoryResponse> subCategories, LocalDateTime createdAt) {
         this.id = id;
-        this.name = name;
+        this.title = title;
+        this.icon = icon;
         this.slug = slug;
-        this.imageUrl = imageUrl;
         this.type = type;
-    }
-
-    public static CategoryResponseBuilder builder() {
-        return new CategoryResponseBuilder();
+        this.subCategories = subCategories;
+        this.createdAt = createdAt;
     }
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
+    public String getTitle() { return title; }
+    public void setTitle(String title) { this.title = title; }
+
+    public String getIcon() { return icon; }
+    public void setIcon(String icon) { this.icon = icon; }
 
     public String getSlug() { return slug; }
     public void setSlug(String slug) { this.slug = slug; }
 
-    public String getImageUrl() { return imageUrl; }
-    public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
-
     public String getType() { return type; }
     public void setType(String type) { this.type = type; }
 
-    public static class CategoryResponseBuilder {
-        private Long id;
-        private String name;
-        private String slug;
-        private String imageUrl;
-        private String type;
+    public List<SubCategoryResponse> getSubCategories() { return subCategories; }
+    public void setSubCategories(List<SubCategoryResponse> subCategories) { this.subCategories = subCategories; }
 
-        CategoryResponseBuilder() {
-        }
-
-        public CategoryResponseBuilder id(Long id) { this.id = id; return this; }
-        public CategoryResponseBuilder name(String name) { this.name = name; return this; }
-        public CategoryResponseBuilder slug(String slug) { this.slug = slug; return this; }
-        public CategoryResponseBuilder imageUrl(String imageUrl) { this.imageUrl = imageUrl; return this; }
-        public CategoryResponseBuilder type(String type) { this.type = type; return this; }
-
-        public CategoryResponse build() {
-            return new CategoryResponse(id, name, slug, imageUrl, type);
-        }
-    }
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 }

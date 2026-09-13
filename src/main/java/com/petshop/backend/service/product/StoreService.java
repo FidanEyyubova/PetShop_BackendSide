@@ -7,14 +7,10 @@ import com.petshop.backend.security.UserPrincipal;
 import org.springframework.data.domain.Pageable;
 
 public interface StoreService {
-
     StoreResponse createStore(CreateStoreRequest request, UserPrincipal currentUser);
-
     StoreResponse updateStore(Long id, CreateStoreRequest request, UserPrincipal currentUser);
-
     StoreResponse getStoreById(Long id);
-
+    StoreResponse getMyStore(UserPrincipal currentUser);
     PageResponse<StoreResponse> getAllStores(Pageable pageable);
-
     void deleteStore(Long id, UserPrincipal currentUser);
 }

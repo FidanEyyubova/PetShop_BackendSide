@@ -17,7 +17,7 @@ public class JwtTokenProvider {
 
     private static final Logger logger = LoggerFactory.getLogger(JwtTokenProvider.class);
 
-    @Value("${jwt.secret:MySuperSecretKeyForPetShopJWTTokenGeneration2026MasterKey!}")
+    @Value("${jwt.secret:MySuperSecretKeyForPetShopJWTTokenGeneration2026MasterKeyExtremelyLongSecureKey512BitRequirementFixed!}")
     private String jwtSecret;
 
     @Value("${jwt.expiration:86400000}")

@@ -22,6 +22,7 @@ public class User {
 
     private String phone;
     private String avatarUrl;
+    private String cityAddress;
 
     @Column(nullable = false)
     private String role;
@@ -30,13 +31,14 @@ public class User {
 
     public User() {}
 
-    public User(Long id, String fullName, String email, String password, String phone, String avatarUrl, String role, LocalDateTime createdAt) {
+    public User(Long id, String fullName, String email, String password, String phone, String avatarUrl, String cityAddress, String role, LocalDateTime createdAt) {
         this.id = id;
         this.fullName = fullName;
         this.email = email;
         this.password = password;
         this.phone = phone;
         this.avatarUrl = avatarUrl;
+        this.cityAddress = cityAddress;
         this.role = role;
         this.createdAt = createdAt;
     }
@@ -60,6 +62,8 @@ public class User {
     public void setPhone(String phone) { this.phone = phone; }
     public String getAvatarUrl() { return avatarUrl; }
     public void setAvatarUrl(String avatarUrl) { this.avatarUrl = avatarUrl; }
+    public String getCityAddress() { return cityAddress; }
+    public void setCityAddress(String cityAddress) { this.cityAddress = cityAddress; }
     public String getRole() { return role; }
     public void setRole(String role) { this.role = role; }
     public LocalDateTime getCreatedAt() { return createdAt; }
@@ -74,6 +78,7 @@ public class User {
         private String password;
         private String phone;
         private String avatarUrl;
+        private String cityAddress;
         private String role;
         private LocalDateTime createdAt;
 
@@ -83,11 +88,12 @@ public class User {
         public UserBuilder password(String password) { this.password = password; return this; }
         public UserBuilder phone(String phone) { this.phone = phone; return this; }
         public UserBuilder avatarUrl(String avatarUrl) { this.avatarUrl = avatarUrl; return this; }
+        public UserBuilder cityAddress(String cityAddress) { this.cityAddress = cityAddress; return this; }
         public UserBuilder role(String role) { this.role = role; return this; }
         public UserBuilder createdAt(LocalDateTime createdAt) { this.createdAt = createdAt; return this; }
 
         public User build() {
-            return new User(id, fullName, email, password, phone, avatarUrl, role, createdAt);
+            return new User(id, fullName, email, password, phone, avatarUrl, cityAddress, role, createdAt);
         }
     }
 }

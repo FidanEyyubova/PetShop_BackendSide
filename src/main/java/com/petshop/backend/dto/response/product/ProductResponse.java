@@ -3,6 +3,7 @@ package com.petshop.backend.dto.response.product;
 import java.math.BigDecimal;
 
 public class ProductResponse {
+
     private Long id;
     private String title;
     private String slug;
@@ -11,6 +12,8 @@ public class ProductResponse {
     private String petType;
     private String categoryName;
     private Long categoryId;
+    private String subCategoryName;
+    private Long subCategoryId;
     private Long storeId;
     private BigDecimal price;
     private BigDecimal discountPrice;
@@ -30,7 +33,7 @@ public class ProductResponse {
     public ProductResponse() {
     }
 
-    public ProductResponse(Long id, String title, String slug, String sku, String brand, String petType, String categoryName, Long categoryId, Long storeId, BigDecimal price, BigDecimal discountPrice, Integer stockQuantity, String badges, String sizes, String flavors, String images, String description, String keyBenefits, String guarantees, String ingredients, String nutritionInfo, String usageGuide, BigDecimal rating) {
+    public ProductResponse(Long id, String title, String slug, String sku, String brand, String petType, String categoryName, Long categoryId, String subCategoryName, Long subCategoryId, Long storeId, BigDecimal price, BigDecimal discountPrice, Integer stockQuantity, String badges, String sizes, String flavors, String images, String description, String keyBenefits, String guarantees, String ingredients, String nutritionInfo, String usageGuide, BigDecimal rating) {
         this.id = id;
         this.title = title;
         this.slug = slug;
@@ -39,6 +42,8 @@ public class ProductResponse {
         this.petType = petType;
         this.categoryName = categoryName;
         this.categoryId = categoryId;
+        this.subCategoryName = subCategoryName;
+        this.subCategoryId = subCategoryId;
         this.storeId = storeId;
         this.price = price;
         this.discountPrice = discountPrice;
@@ -83,6 +88,12 @@ public class ProductResponse {
 
     public Long getCategoryId() { return categoryId; }
     public void setCategoryId(Long categoryId) { this.categoryId = categoryId; }
+
+    public String getSubCategoryName() { return subCategoryName; }
+    public void setSubCategoryName(String subCategoryName) { this.subCategoryName = subCategoryName; }
+
+    public Long getSubCategoryId() { return subCategoryId; }
+    public void setSubCategoryId(Long subCategoryId) { this.subCategoryId = subCategoryId; }
 
     public Long getStoreId() { return storeId; }
     public void setStoreId(Long storeId) { this.storeId = storeId; }
@@ -138,6 +149,8 @@ public class ProductResponse {
         private String petType;
         private String categoryName;
         private Long categoryId;
+        private String subCategoryName;
+        private Long subCategoryId;
         private Long storeId;
         private BigDecimal price;
         private BigDecimal discountPrice;
@@ -165,6 +178,8 @@ public class ProductResponse {
         public ProductResponseBuilder petType(String petType) { this.petType = petType; return this; }
         public ProductResponseBuilder categoryName(String categoryName) { this.categoryName = categoryName; return this; }
         public ProductResponseBuilder categoryId(Long categoryId) { this.categoryId = categoryId; return this; }
+        public ProductResponseBuilder subCategoryName(String subCategoryName) { this.subCategoryName = subCategoryName; return this; }
+        public ProductResponseBuilder subCategoryId(Long subCategoryId) { this.subCategoryId = subCategoryId; return this; }
         public ProductResponseBuilder storeId(Long storeId) { this.storeId = storeId; return this; }
         public ProductResponseBuilder price(BigDecimal price) { this.price = price; return this; }
         public ProductResponseBuilder discountPrice(BigDecimal discountPrice) { this.discountPrice = discountPrice; return this; }
@@ -182,7 +197,7 @@ public class ProductResponse {
         public ProductResponseBuilder rating(BigDecimal rating) { this.rating = rating; return this; }
 
         public ProductResponse build() {
-            return new ProductResponse(id, title, slug, sku, brand, petType, categoryName, categoryId, storeId, price, discountPrice, stockQuantity, badges, sizes, flavors, images, description, keyBenefits, guarantees, ingredients, nutritionInfo, usageGuide, rating);
+            return new ProductResponse(id, title, slug, sku, brand, petType, categoryName, categoryId, subCategoryName, subCategoryId, storeId, price, discountPrice, stockQuantity, badges, sizes, flavors, images, description, keyBenefits, guarantees, ingredients, nutritionInfo, usageGuide, rating);
         }
     }
 }

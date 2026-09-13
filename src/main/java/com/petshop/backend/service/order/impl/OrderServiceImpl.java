@@ -36,6 +36,16 @@ public class OrderServiceImpl implements OrderService {
     private final ProductRepository productRepository;
     private final CartService cartService;
 
+    public OrderServiceImpl(OrderRepository orderRepository,
+                            OrderItemRepository orderItemRepository,
+                            ProductRepository productRepository,
+                            CartService cartService) {
+        this.orderRepository = orderRepository;
+        this.orderItemRepository = orderItemRepository;
+        this.productRepository = productRepository;
+        this.cartService = cartService;
+    }
+
     @Override
     @Transactional
     public OrderResponse createOrder(CreateOrderRequest request, UserPrincipal currentUser) {
@@ -48,7 +58,7 @@ public class OrderServiceImpl implements OrderService {
             for (OrderItemRequest itemReq : request.getItems()) {
                 Long prodId = itemReq.getProductId();
                 if (prodId == null) {
-                    throw new BadRequestException("Məhsul ID-si təyin edilməyib!");
+                    throw new BadRequestException("Product ID is required");
                 }
                 Product product = productRepository.findById(prodId)
                         .orElseThrow(() -> new ResourceNotFoundException("Product", "id", prodId));
@@ -113,6 +123,30 @@ public class OrderServiceImpl implements OrderService {
         return mapToResponse(order, items);
     }
 
+    @Override
+    @Transactional
+    public OrderResponse cancelOrder(Long id, UserPrincipal currentUser) {
+        Order order = orderRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Order", "id", id));
+
+        if (!order.getBuyerId().equals(currentUser.getId())) {
+            throw new BadRequestException("You can only cancel your own orders");
+        }
+
+        if ("CANCELLED".equalsIgnoreCase(order.getStatus())) {
+            throw new BadRequestException("Order is already cancelled");
+        }
+
+        if ("DELIVERED".equalsIgnoreCase(order.getStatus()) || "COMPLETED".equalsIgnoreCase(order.getStatus())) {
+            throw new BadRequestException("Cannot cancel a delivered or completed order");
+        }
+
+        order.setStatus("CANCELLED");
+        Order updatedOrder = Objects.requireNonNull(orderRepository.save(order));
+        List<OrderItem> items = orderItemRepository.findByOrderId(updatedOrder.getId());
+        return mapToResponse(updatedOrder, items);
+    }
+
     private OrderResponse mapToResponse(Order order, List<OrderItem> items) {
         List<OrderItemResponse> itemResponses = items.stream().map(item -> {
             Long prodId = item.getProductId();
@@ -124,7 +158,7 @@ public class OrderServiceImpl implements OrderService {
                     .productImage(p != null ? p.getImages() : "")
                     .unitPrice(item.getUnitPrice())
                     .quantity(item.getQuantity())
-                    .subtotal(item.getSubtotal())
+                    .subtotal(item.getQuantity() != null && item.getUnitPrice() != null ? item.getUnitPrice().multiply(BigDecimal.valueOf(item.getQuantity())) : BigDecimal.ZERO)
                     .build();
         }).toList();
 
@@ -139,11 +173,5 @@ public class OrderServiceImpl implements OrderService {
                 .items(itemResponses)
                 .createdAt(order.getCreatedAt())
                 .build();
-    }
-    public OrderServiceImpl(OrderRepository orderRepository, OrderItemRepository orderItemRepository, ProductRepository productRepository, CartService cartService) {
-        this.orderRepository = orderRepository;
-        this.orderItemRepository = orderItemRepository;
-        this.productRepository = productRepository;
-        this.cartService = cartService;
     }
 }

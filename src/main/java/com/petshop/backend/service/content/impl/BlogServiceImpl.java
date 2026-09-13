@@ -21,6 +21,10 @@ public class BlogServiceImpl implements BlogService {
 
     private final BlogRepository blogRepository;
 
+    public BlogServiceImpl(BlogRepository blogRepository) {
+        this.blogRepository = blogRepository;
+    }
+
     @Override
     @Transactional(readOnly = true)
     public PageResponse<BlogResponse> getAllBlogs(@NonNull Pageable pageable) {
@@ -43,7 +47,7 @@ public class BlogServiceImpl implements BlogService {
     @Transactional(readOnly = true)
     public BlogResponse getBlogById(Long id) {
         Blog blog = blogRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Blog mÉ™qalÉ™si tapÄ±lmadÄ±: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Blog", "id", id));
         return mapToBlogResponse(blog);
     }
 
@@ -51,11 +55,12 @@ public class BlogServiceImpl implements BlogService {
     @Transactional
     public BlogResponse createBlog(CreateBlogRequest request, UserPrincipal currentUser) {
         String slug = request.getTitle().toLowerCase().replaceAll("[^a-z0-9]", "-") + "-" + System.currentTimeMillis();
+        Long authorId = currentUser != null ? currentUser.getId() : 1L;
 
         Blog blog = Blog.builder()
                 .title(request.getTitle())
                 .slug(slug)
-                .authorId(currentUser.getId())
+                .authorId(authorId)
                 .excerpt(request.getExcerpt())
                 .content(request.getContent())
                 .coverImage(request.getCoverImage())
@@ -65,6 +70,31 @@ public class BlogServiceImpl implements BlogService {
 
         Blog savedBlog = blogRepository.save(blog);
         return mapToBlogResponse(savedBlog);
+    }
+
+    @Override
+    @Transactional
+    public BlogResponse updateBlog(Long id, CreateBlogRequest request, UserPrincipal currentUser) {
+        Blog blog = blogRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Blog", "id", id));
+
+        blog.setTitle(request.getTitle());
+        blog.setExcerpt(request.getExcerpt());
+        blog.setContent(request.getContent());
+        blog.setCoverImage(request.getCoverImage());
+        blog.setReadTime(request.getReadTime());
+        blog.setTags(request.getTags());
+
+        Blog updated = blogRepository.save(blog);
+        return mapToBlogResponse(updated);
+    }
+
+    @Override
+    @Transactional
+    public void deleteBlog(Long id, UserPrincipal currentUser) {
+        Blog blog = blogRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Blog", "id", id));
+        blogRepository.delete(blog);
     }
 
     private BlogResponse mapToBlogResponse(Blog blog) {
@@ -80,8 +110,5 @@ public class BlogServiceImpl implements BlogService {
                 .readTime(blog.getReadTime())
                 .createdAt(blog.getCreatedAt())
                 .build();
-    }
-    public BlogServiceImpl(BlogRepository blogRepository) {
-        this.blogRepository = blogRepository;
     }
 }

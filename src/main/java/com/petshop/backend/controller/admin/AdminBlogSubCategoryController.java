@@ -1,0 +1,68 @@
+package com.petshop.backend.controller.admin;
+
+import com.petshop.backend.dto.request.content.BlogSubCategoryRequest;
+import com.petshop.backend.dto.response.common.ApiResponse;
+import com.petshop.backend.dto.response.content.BlogSubCategoryResponse;
+import com.petshop.backend.service.content.BlogSubCategoryService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/v1/admin/blog-sub-categories")
+@Tag(name = "Admin Panel", description = "Unified Admin Panel management endpoints (Hero, Category, SubCategory, Product, Admin-Service, About, Blog, Contact, Messages, Settings)")
+@SecurityRequirement(name = "Bearer Authentication")
+@PreAuthorize("hasRole('ADMIN')")
+public class AdminBlogSubCategoryController {
+
+    private final BlogSubCategoryService blogSubCategoryService;
+
+    public AdminBlogSubCategoryController(BlogSubCategoryService blogSubCategoryService) {
+        this.blogSubCategoryService = blogSubCategoryService;
+    }
+
+    @PostMapping
+    @Operation(summary = "Sub-Blog-Category (Blog Page) - Add category")
+    public ResponseEntity<ApiResponse<BlogSubCategoryResponse>> createBlogSubCategory(@Valid @RequestBody BlogSubCategoryRequest request) {
+        BlogSubCategoryResponse response = blogSubCategoryService.createBlogSubCategory(request);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success("Blog SubCategory created successfully", response));
+    }
+
+    @GetMapping
+    @Operation(summary = "Sub-Blog-Category (Blog Page) - Get all categories")
+    public ResponseEntity<ApiResponse<List<BlogSubCategoryResponse>>> getAllBlogSubCategories() {
+        List<BlogSubCategoryResponse> response = blogSubCategoryService.getAllBlogSubCategories();
+        return ResponseEntity.ok(ApiResponse.success("Blog SubCategories retrieved successfully", response));
+    }
+
+    @GetMapping("/{id}")
+    @Operation(summary = "Sub-Blog-Category (Blog Page) - Get category by ID")
+    public ResponseEntity<ApiResponse<BlogSubCategoryResponse>> getBlogSubCategoryById(@PathVariable Long id) {
+        BlogSubCategoryResponse response = blogSubCategoryService.getBlogSubCategoryById(id);
+        return ResponseEntity.ok(ApiResponse.success("Blog SubCategory retrieved successfully", response));
+    }
+
+    @PutMapping("/{id}")
+    @Operation(summary = "Sub-Blog-Category (Blog Page) - Update category by ID")
+    public ResponseEntity<ApiResponse<BlogSubCategoryResponse>> updateBlogSubCategory(
+            @PathVariable Long id,
+            @Valid @RequestBody BlogSubCategoryRequest request) {
+        BlogSubCategoryResponse response = blogSubCategoryService.updateBlogSubCategory(id, request);
+        return ResponseEntity.ok(ApiResponse.success("Blog SubCategory updated successfully", response));
+    }
+
+    @DeleteMapping("/{id}")
+    @Operation(summary = "Sub-Blog-Category (Blog Page) - Delete category by ID")
+    public ResponseEntity<ApiResponse<Void>> deleteBlogSubCategory(@PathVariable Long id) {
+        blogSubCategoryService.deleteBlogSubCategory(id);
+        return ResponseEntity.ok(ApiResponse.success("Blog SubCategory deleted successfully", null));
+    }
+}

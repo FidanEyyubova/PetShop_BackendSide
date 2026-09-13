@@ -1,17 +1,25 @@
 package com.petshop.backend.dto.request.user;
 
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 @Data
 public class ChangePasswordRequest {
-    @NotBlank(message = "Köhnə şifrə mütləqdir")
-    private String oldPassword;
+    @NotBlank(message = "Current password is required")
+    private String currentPassword;
 
-    @NotBlank(message = "Yeni şifrə mütləqdir")
-    @Size(min = 6, message = "Şifrə minimum 6 simvol olmalıdır")
+    @NotBlank(message = "New password is required")
     private String newPassword;
 
-    private String confirmPassword;
+    public ChangePasswordRequest() {}
+    public ChangePasswordRequest(String currentPassword, String newPassword) {
+        this.currentPassword = currentPassword;
+        this.newPassword = newPassword;
+    }
+
+    public String getCurrentPassword() { return currentPassword; }
+    public void setCurrentPassword(String currentPassword) { this.currentPassword = currentPassword; }
+
+    public String getNewPassword() { return newPassword; }
+    public void setNewPassword(String newPassword) { this.newPassword = newPassword; }
 }

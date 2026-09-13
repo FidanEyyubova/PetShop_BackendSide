@@ -9,18 +9,20 @@ public class UserResponse {
     private String phone;
     private String role;
     private String avatarUrl;
+    private String cityAddress;
     private LocalDateTime createdAt;
 
     public UserResponse() {
     }
 
-    public UserResponse(Long id, String fullName, String email, String phone, String role, String avatarUrl, LocalDateTime createdAt) {
+    public UserResponse(Long id, String fullName, String email, String phone, String role, String avatarUrl, String cityAddress, LocalDateTime createdAt) {
         this.id = id;
         this.fullName = fullName;
         this.email = email;
         this.phone = phone;
         this.role = role;
         this.avatarUrl = avatarUrl;
+        this.cityAddress = cityAddress;
         this.createdAt = createdAt;
     }
 
@@ -46,6 +48,9 @@ public class UserResponse {
     public String getAvatarUrl() { return avatarUrl; }
     public void setAvatarUrl(String avatarUrl) { this.avatarUrl = avatarUrl; }
 
+    public String getCityAddress() { return cityAddress; }
+    public void setCityAddress(String cityAddress) { this.cityAddress = cityAddress; }
+
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 
@@ -56,6 +61,7 @@ public class UserResponse {
         private String phone;
         private String role;
         private String avatarUrl;
+        private String cityAddress;
         private LocalDateTime createdAt;
 
         UserResponseBuilder() {
@@ -91,13 +97,18 @@ public class UserResponse {
             return this;
         }
 
+        public UserResponseBuilder cityAddress(String cityAddress) {
+            this.cityAddress = cityAddress;
+            return this;
+        }
+
         public UserResponseBuilder createdAt(LocalDateTime createdAt) {
             this.createdAt = createdAt;
             return this;
         }
 
         public UserResponse build() {
-            return new UserResponse(id, fullName, email, phone, role, avatarUrl, createdAt);
+            return new UserResponse(id, fullName, email, phone, role, avatarUrl, cityAddress, createdAt);
         }
     }
 }

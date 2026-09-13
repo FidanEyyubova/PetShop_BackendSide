@@ -21,10 +21,26 @@ public class ProductServiceImpl implements ProductService {
 
     private final ProductRepository productRepository;
 
+    public ProductServiceImpl(ProductRepository productRepository) {
+        this.productRepository = productRepository;
+    }
+
     @Override
     @Transactional(readOnly = true)
-    public PageResponse<ProductResponse> getAllProducts(String search, Long categoryId, BigDecimal minPrice, BigDecimal maxPrice, Boolean inStock, Pageable pageable) {
-        Page<Product> productPage = productRepository.filterProducts(search, null, null, null, minPrice, maxPrice, pageable);
+    public PageResponse<ProductResponse> getAllProducts(
+            String search,
+            Long categoryId,
+            Long subCategoryId,
+            String petType,
+            String brand,
+            Long storeId,
+            BigDecimal minPrice,
+            BigDecimal maxPrice,
+            Boolean inStock,
+            Pageable pageable) {
+
+        Page<Product> productPage = productRepository.filterProducts(
+                search, categoryId, subCategoryId, petType, null, brand, storeId, minPrice, maxPrice, inStock, pageable);
         List<ProductResponse> content = productPage.getContent().stream()
                 .map(this::mapToProductResponse)
                 .toList();
@@ -43,7 +59,7 @@ public class ProductServiceImpl implements ProductService {
     @Transactional(readOnly = true)
     public ProductResponse getProductById(Long id) {
         Product product = productRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("MÉ™hsul tapÄ±lmadÄ±: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Product not found: " + id));
         return mapToProductResponse(product);
     }
 
@@ -60,6 +76,8 @@ public class ProductServiceImpl implements ProductService {
                 .petType(request.getPetType())
                 .categoryName(request.getCategoryName())
                 .categoryId(request.getCategoryId())
+                .subCategoryName(request.getSubCategoryName())
+                .subCategoryId(request.getSubCategoryId())
                 .storeId(request.getStoreId())
                 .price(request.getPrice())
                 .discountPrice(request.getDiscountPrice())
@@ -84,14 +102,30 @@ public class ProductServiceImpl implements ProductService {
     @Transactional
     public ProductResponse updateProduct(Long id, CreateProductRequest request, UserPrincipal currentUser) {
         Product product = productRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("MÉ™hsul tapÄ±lmadÄ±: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Product not found: " + id));
 
         product.setTitle(request.getTitle());
+        product.setSku(request.getSku());
+        product.setBrand(request.getBrand());
+        product.setPetType(request.getPetType());
+        product.setCategoryId(request.getCategoryId());
+        product.setCategoryName(request.getCategoryName());
+        product.setSubCategoryId(request.getSubCategoryId());
+        product.setSubCategoryName(request.getSubCategoryName());
+        product.setStoreId(request.getStoreId());
         product.setPrice(request.getPrice());
         product.setDiscountPrice(request.getDiscountPrice());
         product.setStockQuantity(request.getStockQuantity());
         product.setDescription(request.getDescription());
         product.setImages(request.getImages());
+        product.setBadges(request.getBadges());
+        product.setSizes(request.getSizes());
+        product.setFlavors(request.getFlavors());
+        product.setKeyBenefits(request.getKeyBenefits());
+        product.setGuarantees(request.getGuarantees());
+        product.setIngredients(request.getIngredients());
+        product.setNutritionInfo(request.getNutritionInfo());
+        product.setUsageGuide(request.getUsageGuide());
 
         Product updatedProduct = productRepository.save(product);
         return mapToProductResponse(updatedProduct);
@@ -101,7 +135,7 @@ public class ProductServiceImpl implements ProductService {
     @Transactional
     public void deleteProduct(Long id, UserPrincipal currentUser) {
         Product product = productRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("MÉ™hsul tapÄ±lmadÄ±: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Product not found: " + id));
         productRepository.delete(product);
     }
 
@@ -115,6 +149,8 @@ public class ProductServiceImpl implements ProductService {
                 .petType(product.getPetType())
                 .categoryName(product.getCategoryName())
                 .categoryId(product.getCategoryId())
+                .subCategoryName(product.getSubCategoryName())
+                .subCategoryId(product.getSubCategoryId())
                 .storeId(product.getStoreId())
                 .price(product.getPrice())
                 .discountPrice(product.getDiscountPrice())
@@ -131,8 +167,5 @@ public class ProductServiceImpl implements ProductService {
                 .usageGuide(product.getUsageGuide())
                 .rating(product.getRating())
                 .build();
-    }
-    public ProductServiceImpl(ProductRepository productRepository) {
-        this.productRepository = productRepository;
     }
 }

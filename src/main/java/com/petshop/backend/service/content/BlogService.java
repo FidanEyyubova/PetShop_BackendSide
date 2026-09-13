@@ -11,4 +11,6 @@ public interface BlogService {
     PageResponse<BlogResponse> getAllBlogs(@NonNull Pageable pageable);
     BlogResponse getBlogById(Long id);
     BlogResponse createBlog(CreateBlogRequest request, UserPrincipal currentUser);
+    BlogResponse updateBlog(Long id, CreateBlogRequest request, UserPrincipal currentUser);
+    void deleteBlog(Long id, UserPrincipal currentUser);
 }
