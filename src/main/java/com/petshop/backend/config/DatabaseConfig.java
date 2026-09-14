@@ -1,9 +1,11 @@
 package com.petshop.backend.config;
 
-import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties;
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
+import javax.sql.DataSource;
 import java.net.URI;
 
 @Configuration
@@ -11,9 +13,7 @@ public class DatabaseConfig {
 
     @Bean
     @Primary
-    public DataSourceProperties dataSourceProperties() {
-        DataSourceProperties properties = new DataSourceProperties();
-        
+    public DataSource dataSource() {
         String rawUrl = System.getenv("SPRING_DATASOURCE_URL");
         if (rawUrl == null || rawUrl.isBlank()) {
             rawUrl = System.getenv("DATABASE_PUBLIC_URL");
@@ -41,9 +41,10 @@ public class DatabaseConfig {
             password = System.getenv("POSTGRES_PASSWORD");
         }
 
+        String jdbcUrl = "jdbc:postgresql://localhost:5432/petshop_db";
+
         if (rawUrl != null && !rawUrl.isBlank()) {
             String processedUrl = rawUrl.trim();
-            
             if (processedUrl.startsWith("postgres://") || processedUrl.startsWith("postgresql://") || processedUrl.startsWith("jdbc:postgresql://")) {
                 try {
                     String uriString = processedUrl;
@@ -55,24 +56,17 @@ public class DatabaseConfig {
                     }
 
                     URI uri = new URI(uriString);
-                    
                     String host = uri.getHost();
-                    int port = uri.getPort();
-                    if (port == -1) {
-                        port = 5432;
-                    }
-                    
+                    int port = uri.getPort() != -1 ? uri.getPort() : 5432;
                     String path = uri.getPath();
                     String dbName = (path != null && path.length() > 1) ? path.substring(1) : "railway";
-                    
                     String query = uri.getQuery();
-                    String formattedJdbcUrl = "jdbc:postgresql://" + host + ":" + port + "/" + dbName;
+
+                    jdbcUrl = "jdbc:postgresql://" + host + ":" + port + "/" + dbName;
                     if (query != null && !query.isBlank()) {
-                        formattedJdbcUrl += "?" + query;
+                        jdbcUrl += "?" + query;
                     }
-                    
-                    properties.setUrl(formattedJdbcUrl);
-                    
+
                     if (uri.getUserInfo() != null && !uri.getUserInfo().isBlank()) {
                         String[] userInfo = uri.getUserInfo().split(":", 2);
                         if (userInfo.length > 0 && userInfo[0] != null && !userInfo[0].isBlank()) {
@@ -88,18 +82,18 @@ public class DatabaseConfig {
                     }
                 } catch (Exception e) {
                     if (!processedUrl.startsWith("jdbc:")) {
-                        processedUrl = "jdbc:" + processedUrl;
+                        jdbcUrl = "jdbc:" + processedUrl;
+                    } else {
+                        jdbcUrl = processedUrl;
                     }
-                    properties.setUrl(processedUrl);
                 }
             } else {
                 if (!processedUrl.startsWith("jdbc:")) {
-                    processedUrl = "jdbc:" + processedUrl;
+                    jdbcUrl = "jdbc:" + processedUrl;
+                } else {
+                    jdbcUrl = processedUrl;
                 }
-                properties.setUrl(processedUrl);
             }
-        } else {
-            properties.setUrl("jdbc:postgresql://localhost:5432/petshop_db");
         }
 
         if (username == null || username.isBlank()) {
@@ -109,10 +103,17 @@ public class DatabaseConfig {
             password = "postgres";
         }
 
-        properties.setUsername(username);
-        properties.setPassword(password);
-        properties.setDriverClassName("org.postgresql.Driver");
+        System.out.println("=== PETSHOP DATABASE CONNECTING TO: " + jdbcUrl + " WITH USER: " + username + " ===");
 
-        return properties;
+        HikariConfig config = new HikariConfig();
+        config.setJdbcUrl(jdbcUrl);
+        config.setUsername(username);
+        config.setPassword(password);
+        config.setDriverClassName("org.postgresql.Driver");
+        config.setInitializationFailTimeout(60000);
+        config.setMaximumPoolSize(10);
+        config.setMinimumIdle(2);
+
+        return new HikariDataSource(config);
     }
 }
