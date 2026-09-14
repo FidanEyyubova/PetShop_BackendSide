@@ -16,10 +16,10 @@ public class DatabaseConfig {
         
         String rawUrl = System.getenv("SPRING_DATASOURCE_URL");
         if (rawUrl == null || rawUrl.isBlank()) {
-            rawUrl = System.getenv("DATABASE_URL");
+            rawUrl = System.getenv("DATABASE_PUBLIC_URL");
         }
         if (rawUrl == null || rawUrl.isBlank()) {
-            rawUrl = System.getenv("DATABASE_PUBLIC_URL");
+            rawUrl = System.getenv("DATABASE_URL");
         }
         if (rawUrl == null || rawUrl.isBlank()) {
             rawUrl = System.getenv("POSTGRES_URL");
