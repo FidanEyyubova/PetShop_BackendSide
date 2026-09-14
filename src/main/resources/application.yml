@@ -1,14 +1,15 @@
 server:
-  port: 8080
+  port: ${PORT:8080}
+  forward-headers-strategy: framework
 
 spring:
   application:
     name: petshop-backend
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/petshop_db
-    username: postgres
-    password: postgres
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/petshop_db}
+    username: ${SPRING_DATASOURCE_USERNAME:postgres}
+    password: ${SPRING_DATASOURCE_PASSWORD:postgres}
     driver-class-name: org.postgresql.Driver
 
   jpa:
@@ -24,8 +25,8 @@ spring:
     enabled: true
 
 jwt:
-  secret: MySuperSecretKeyForPetShopJWTTokenGeneration2026MasterKeyExtremelyLongSecureKey512BitRequirementFixed!
-  expiration: 86400000
+  secret: ${JWT_SECRET:MySuperSecretKeyForPetShopJWTTokenGeneration2026MasterKeyExtremelyLongSecureKey512BitRequirementFixed!}
+  expiration: ${JWT_EXPIRATION:86400000}
 
 springdoc:
   swagger-ui:
