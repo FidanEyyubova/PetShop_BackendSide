@@ -1,14 +1,23 @@
 package com.petshop.backend.dto.request.service;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import java.time.LocalTime;
 
 public class ScheduleRequest {
     @NotBlank(message = "Day of week is required")
+    @Schema(example = "MONDAY")
     private String dayOfWeek;
 
+    @JsonFormat(pattern = "HH:mm[:ss]")
+    @Schema(type = "string", example = "09:00:00")
     private LocalTime startTime;
+
+    @JsonFormat(pattern = "HH:mm[:ss]")
+    @Schema(type = "string", example = "18:00:00")
     private LocalTime endTime;
+
     private Boolean isActive = true;
 
     public ScheduleRequest() {}
