@@ -12,6 +12,7 @@ import com.petshop.backend.entity.service.TeamMember;
 import com.petshop.backend.entity.user.User;
 import com.petshop.backend.exception.BadRequestException;
 import com.petshop.backend.exception.ResourceNotFoundException;
+import com.petshop.backend.repository.product.CategoryRepository;
 import com.petshop.backend.repository.service.PetServiceRepository;
 import com.petshop.backend.repository.service.ScheduleRepository;
 import com.petshop.backend.repository.service.TeamMemberRepository;
@@ -34,15 +35,18 @@ public class PetServiceServiceImpl implements PetServiceService {
     private final UserRepository userRepository;
     private final ScheduleRepository scheduleRepository;
     private final TeamMemberRepository teamMemberRepository;
+    private final CategoryRepository categoryRepository;
 
     public PetServiceServiceImpl(PetServiceRepository petServiceRepository,
                                  UserRepository userRepository,
                                  ScheduleRepository scheduleRepository,
-                                 TeamMemberRepository teamMemberRepository) {
+                                 TeamMemberRepository teamMemberRepository,
+                                 CategoryRepository categoryRepository) {
         this.petServiceRepository = petServiceRepository;
         this.userRepository = userRepository;
         this.scheduleRepository = scheduleRepository;
         this.teamMemberRepository = teamMemberRepository;
+        this.categoryRepository = categoryRepository;
     }
 
     @Override
@@ -115,6 +119,11 @@ public class PetServiceServiceImpl implements PetServiceService {
     @Override
     @Transactional
     public ServiceResponse createService(CreateServiceRequest request, UserPrincipal currentUser) {
+        if (request.getCategoryId() != null) {
+            categoryRepository.findById(request.getCategoryId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Category", "id", request.getCategoryId()));
+        }
+
         PetService petService = PetService.builder()
                 .providerId(currentUser.getId())
                 .categoryId(request.getCategoryId())
@@ -142,6 +151,12 @@ public class PetServiceServiceImpl implements PetServiceService {
             throw new BadRequestException("You can only update your own pet services");
         }
 
+        if (request.getCategoryId() != null) {
+            categoryRepository.findById(request.getCategoryId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Category", "id", request.getCategoryId()));
+            petService.setCategoryId(request.getCategoryId());
+        }
+
         petService.setTitle(request.getTitle());
         petService.setDescription(request.getDescription());
         petService.setBasePrice(request.getBasePrice());
@@ -150,9 +165,6 @@ public class PetServiceServiceImpl implements PetServiceService {
         petService.setAmenities(request.getAmenities());
         if (request.getEmergencyService() != null) {
             petService.setEmergencyService(request.getEmergencyService());
-        }
-        if (request.getCategoryId() != null) {
-            petService.setCategoryId(request.getCategoryId());
         }
 
         PetService updated = petServiceRepository.save(petService);
