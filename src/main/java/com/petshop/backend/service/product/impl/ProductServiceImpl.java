@@ -5,7 +5,10 @@ import com.petshop.backend.dto.response.common.PageResponse;
 import com.petshop.backend.dto.response.product.ProductResponse;
 import com.petshop.backend.entity.product.Product;
 import com.petshop.backend.exception.ResourceNotFoundException;
+import com.petshop.backend.repository.product.CategoryRepository;
 import com.petshop.backend.repository.product.ProductRepository;
+import com.petshop.backend.repository.product.StoreRepository;
+import com.petshop.backend.repository.product.SubCategoryRepository;
 import com.petshop.backend.security.UserPrincipal;
 import com.petshop.backend.service.product.ProductService;
 import org.springframework.data.domain.Page;
@@ -20,9 +23,18 @@ import java.util.List;
 public class ProductServiceImpl implements ProductService {
 
     private final ProductRepository productRepository;
+    private final CategoryRepository categoryRepository;
+    private final SubCategoryRepository subCategoryRepository;
+    private final StoreRepository storeRepository;
 
-    public ProductServiceImpl(ProductRepository productRepository) {
+    public ProductServiceImpl(ProductRepository productRepository,
+                              CategoryRepository categoryRepository,
+                              SubCategoryRepository subCategoryRepository,
+                              StoreRepository storeRepository) {
         this.productRepository = productRepository;
+        this.categoryRepository = categoryRepository;
+        this.subCategoryRepository = subCategoryRepository;
+        this.storeRepository = storeRepository;
     }
 
     @Override
@@ -66,6 +78,19 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional
     public ProductResponse createProduct(CreateProductRequest request, UserPrincipal currentUser) {
+        if (request.getCategoryId() != null) {
+            categoryRepository.findById(request.getCategoryId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Category", "id", request.getCategoryId()));
+        }
+        if (request.getSubCategoryId() != null) {
+            subCategoryRepository.findById(request.getSubCategoryId())
+                    .orElseThrow(() -> new ResourceNotFoundException("SubCategory", "id", request.getSubCategoryId()));
+        }
+        if (request.getStoreId() != null) {
+            storeRepository.findById(request.getStoreId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Store", "id", request.getStoreId()));
+        }
+
         String slug = request.getTitle().toLowerCase().replaceAll("[^a-z0-9]", "-") + "-" + System.currentTimeMillis();
 
         Product product = Product.builder()
@@ -103,6 +128,19 @@ public class ProductServiceImpl implements ProductService {
     public ProductResponse updateProduct(Long id, CreateProductRequest request, UserPrincipal currentUser) {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found: " + id));
+
+        if (request.getCategoryId() != null) {
+            categoryRepository.findById(request.getCategoryId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Category", "id", request.getCategoryId()));
+        }
+        if (request.getSubCategoryId() != null) {
+            subCategoryRepository.findById(request.getSubCategoryId())
+                    .orElseThrow(() -> new ResourceNotFoundException("SubCategory", "id", request.getSubCategoryId()));
+        }
+        if (request.getStoreId() != null) {
+            storeRepository.findById(request.getStoreId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Store", "id", request.getStoreId()));
+        }
 
         product.setTitle(request.getTitle());
         product.setSku(request.getSku());
