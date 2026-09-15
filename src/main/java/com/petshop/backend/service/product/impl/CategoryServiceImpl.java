@@ -32,7 +32,7 @@ public class CategoryServiceImpl implements CategoryService {
         category.setIcon(request.getIcon());
         category.setImageUrl(request.getIcon());
         category.setType(request.getType());
-        category.setSlug(generateSlug(request.getTitle()));
+        category.setSlug(generateSlug(request.getTitle(), null));
 
         Category saved = categoryRepository.save(category);
         return mapToCategoryResponse(saved);
@@ -64,7 +64,7 @@ public class CategoryServiceImpl implements CategoryService {
         category.setIcon(request.getIcon());
         category.setImageUrl(request.getIcon());
         category.setType(request.getType());
-        category.setSlug(generateSlug(request.getTitle()));
+        category.setSlug(generateSlug(request.getTitle(), id));
 
         Category updated = categoryRepository.save(category);
         return mapToCategoryResponse(updated);
@@ -106,10 +106,22 @@ public class CategoryServiceImpl implements CategoryService {
         );
     }
 
-    private String generateSlug(String title) {
-        if (title == null) return "";
-        return title.toLowerCase()
+    private String generateSlug(String title, Long currentCategoryId) {
+        if (title == null || title.isBlank()) title = "category";
+        String baseSlug = title.toLowerCase()
                 .replaceAll("[^a-z0-9\\s]", "")
                 .replaceAll("\\s+", "-");
+        if (baseSlug.isBlank()) baseSlug = "category";
+
+        String slug = baseSlug;
+        int count = 1;
+        while (true) {
+            var existing = categoryRepository.findBySlug(slug);
+            if (existing.isEmpty() || (currentCategoryId != null && existing.get().getId().equals(currentCategoryId))) {
+                break;
+            }
+            slug = baseSlug + "-" + count++;
+        }
+        return slug;
     }
 }
