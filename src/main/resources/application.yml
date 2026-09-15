@@ -34,3 +34,8 @@ springdoc:
     operationsSorter: alpha
   api-docs:
     path: /v3/api-docs
+  pathsToExclude:
+    - /
+    - /docs
+    - /swagger
+    - /swagger/
