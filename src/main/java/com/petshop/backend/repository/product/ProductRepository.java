@@ -17,12 +17,12 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     List<Product> findByStoreIdAndStockQuantityLessThan(Long storeId, Integer threshold);
 
     @Query("SELECT p FROM Product p WHERE " +
-           "(:search IS NULL OR LOWER(p.title) LIKE LOWER(CONCAT('%', :search, '%'))) AND " +
+           "(CAST(:search AS string) IS NULL OR LOWER(p.title) LIKE LOWER(CONCAT('%', CAST(:search AS string), '%'))) AND " +
            "(:categoryId IS NULL OR p.categoryId = :categoryId) AND " +
            "(:subCategoryId IS NULL OR p.subCategoryId = :subCategoryId) AND " +
-           "(:petType IS NULL OR LOWER(p.petType) = LOWER(:petType)) AND " +
-           "(:categoryName IS NULL OR LOWER(p.categoryName) = LOWER(:categoryName)) AND " +
-           "(:brand IS NULL OR LOWER(p.brand) = LOWER(:brand)) AND " +
+           "(CAST(:petType AS string) IS NULL OR LOWER(p.petType) = LOWER(CAST(:petType AS string))) AND " +
+           "(CAST(:categoryName AS string) IS NULL OR LOWER(p.categoryName) = LOWER(CAST(:categoryName AS string))) AND " +
+           "(CAST(:brand AS string) IS NULL OR LOWER(p.brand) = LOWER(CAST(:brand AS string))) AND " +
            "(:storeId IS NULL OR p.storeId = :storeId) AND " +
            "(:minPrice IS NULL OR p.price >= :minPrice) AND " +
            "(:maxPrice IS NULL OR p.price <= :maxPrice) AND " +
