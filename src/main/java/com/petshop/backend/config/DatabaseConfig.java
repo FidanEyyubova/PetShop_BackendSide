@@ -103,7 +103,9 @@ public class DatabaseConfig {
             password = "postgres";
         }
 
-        System.out.println("=== PETSHOP DATABASE CONNECTING TO: " + jdbcUrl + " WITH USER: " + username + " ===");
+        // Log only the host/database part; never credentials or query parameters.
+        String safeUrl = jdbcUrl.contains("?") ? jdbcUrl.substring(0, jdbcUrl.indexOf('?')) : jdbcUrl;
+        org.slf4j.LoggerFactory.getLogger(DatabaseConfig.class).info("Connecting to database {}", safeUrl);
 
         HikariConfig config = new HikariConfig();
         config.setJdbcUrl(jdbcUrl);

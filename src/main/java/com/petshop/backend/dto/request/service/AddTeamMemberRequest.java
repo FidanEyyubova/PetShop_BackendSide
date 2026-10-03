@@ -1,37 +1,45 @@
 package com.petshop.backend.dto.request.service;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
+import com.petshop.backend.common.ValidationPatterns;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
+import lombok.Data;
 
+@Data
 public class AddTeamMemberRequest {
+
     @NotBlank(message = "Full name is required")
+    @Size(max = 150)
+    @JsonAlias("name")
     private String fullName;
 
+    @NotBlank(message = "Role is required")
+    @Size(max = 100)
+    @Schema(example = "Senior groomer")
     private String role;
+
+    @NotBlank(message = "Experience is required")
+    @Size(max = 255)
+    @Schema(example = "6 years")
     private String experience;
+
+    @Size(max = 1000)
+    private String certifications;
+
+    @Size(max = 2000)
+    private String bio;
+
+    @Size(max = 2000)
     private String note;
+
+    @JsonAlias("photo")
+    @Pattern(regexp = ValidationPatterns.IMAGE_URL, message = ValidationPatterns.IMAGE_URL_MESSAGE)
+    @Size(max = 1000)
     private String avatar;
 
-    public AddTeamMemberRequest() {}
-    public AddTeamMemberRequest(String fullName, String role, String experience, String note, String avatar) {
-        this.fullName = fullName;
-        this.role = role;
-        this.experience = experience;
-        this.note = note;
-        this.avatar = avatar;
-    }
-
-    public String getFullName() { return fullName; }
-    public void setFullName(String fullName) { this.fullName = fullName; }
-
-    public String getRole() { return role; }
-    public void setRole(String role) { this.role = role; }
-
-    public String getExperience() { return experience; }
-    public void setExperience(String experience) { this.experience = experience; }
-
-    public String getNote() { return note; }
-    public void setNote(String note) { this.note = note; }
-
-    public String getAvatar() { return avatar; }
-    public void setAvatar(String avatar) { this.avatar = avatar; }
+    @Schema(description = "Show on the public page (max 4 featured members)")
+    private Boolean featured;
 }

@@ -1,29 +1,68 @@
 package com.petshop.backend.dto.request.auth;
 
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
+import com.fasterxml.jackson.annotation.JsonAlias;
+import com.petshop.backend.common.ValidationPatterns;
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.*;
 import lombok.Data;
 
+/** Vendor sign-up; creates the user and its store in one step. The account waits for admin approval. */
 @Data
 public class RegisterVendorRequest {
-    @NotBlank(message = "Ad və soyad boş ola bilməz")
+
+    @NotBlank(message = "Full name is required")
+    @Size(min = 2, max = 100)
+    @Schema(example = "Rauf Əliyev")
     private String fullName;
 
-    @NotBlank(message = "E-poçt ünvanı mütləqdir")
-    @Email(message = "Düzgün e-poçt daxil edin")
+    @NotBlank(message = "Email is required")
+    @Email(message = "Enter a valid email address")
+    @Size(max = 150)
+    @Schema(example = "vendor@example.com")
     private String email;
 
-    @NotBlank(message = "Şifrə boş ola bilməz")
-    @Size(min = 6, message = "Şifrə minimum 6 simvol olmalıdır")
-    private String password;
-
-    private String confirmPassword;
+    @NotBlank(message = "Phone is required")
+    @JsonAlias("phoneNum")
+    @Pattern(regexp = ValidationPatterns.PHONE, message = ValidationPatterns.PHONE_MESSAGE)
+    @Schema(example = "+994 50 123 45 67")
     private String phone;
 
-    @NotBlank(message = "Mağaza adı mütləqdir")
+    @NotBlank(message = "Password is required")
+    @Pattern(regexp = ValidationPatterns.PASSWORD, message = ValidationPatterns.PASSWORD_MESSAGE)
+    private String password;
+
+    @NotBlank(message = "Password confirmation is required")
+    private String confirmPassword;
+
+    private Boolean agreeTerms;
+
+    @NotBlank(message = "Store name is required")
+    @Size(min = 2, max = 150)
+    @JsonAlias("centerName")
+    @Schema(description = "Also accepted as `centerName` (the frontend field name)", example = "PetLand")
     private String storeName;
 
+    @Size(max = 300)
+    @Schema(example = "Nizami küç. 10, Bakı")
+    private String storeAddress;
+
+    @Size(max = 100)
+    @Schema(example = "Bakı")
+    private String city;
+
+    @Pattern(regexp = ValidationPatterns.VOEN, message = ValidationPatterns.VOEN_MESSAGE)
+    @Schema(example = "1234567890")
     private String voen;
+
+    @JsonAlias("iban")
+    @Pattern(regexp = ValidationPatterns.IBAN, message = ValidationPatterns.IBAN_MESSAGE)
+    @Schema(example = "AZ21NABZ00000000137010001944")
+    private String bankIban;
+
+    @Size(max = 150)
+    private String bankName;
+
+    @Pattern(regexp = ValidationPatterns.IMAGE_URL, message = ValidationPatterns.IMAGE_URL_MESSAGE)
+    @Size(max = 1000)
     private String logoUrl;
 }

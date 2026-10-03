@@ -1,198 +1,86 @@
 package com.petshop.backend.service.service.impl;
 
-import com.petshop.backend.dto.request.service.CreateServiceRequest;
+import com.petshop.backend.common.Roles;
+import com.petshop.backend.common.ServiceType;
+import com.petshop.backend.common.UserStatus;
 import com.petshop.backend.dto.response.common.PageResponse;
-import com.petshop.backend.dto.response.service.ProviderProfileResponse;
-import com.petshop.backend.dto.response.service.ScheduleResponse;
 import com.petshop.backend.dto.response.service.ServiceResponse;
-import com.petshop.backend.dto.response.service.TeamMemberResponse;
 import com.petshop.backend.entity.service.PetService;
-import com.petshop.backend.entity.service.Schedule;
-import com.petshop.backend.entity.service.TeamMember;
+import com.petshop.backend.entity.service.ServiceProviderProfile;
 import com.petshop.backend.entity.user.User;
-import com.petshop.backend.exception.BadRequestException;
 import com.petshop.backend.exception.ResourceNotFoundException;
-import com.petshop.backend.repository.product.CategoryRepository;
 import com.petshop.backend.repository.service.PetServiceRepository;
-import com.petshop.backend.repository.service.ScheduleRepository;
-import com.petshop.backend.repository.service.TeamMemberRepository;
-import com.petshop.backend.repository.user.UserRepository;
-import com.petshop.backend.security.UserPrincipal;
 import com.petshop.backend.service.service.PetServiceService;
+import com.petshop.backend.service.service.ProviderSupport;
+import com.petshop.backend.util.MaskUtils;
+import com.petshop.backend.util.PageUtils;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Subquery;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.lang.NonNull;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
+/** Public, read-only list of active services of approved providers. Providers manage theirs via the provider API. */
 @Service
 public class PetServiceServiceImpl implements PetServiceService {
 
     private final PetServiceRepository petServiceRepository;
-    private final UserRepository userRepository;
-    private final ScheduleRepository scheduleRepository;
-    private final TeamMemberRepository teamMemberRepository;
-    private final CategoryRepository categoryRepository;
+    private final ProviderSupport support;
 
-    public PetServiceServiceImpl(PetServiceRepository petServiceRepository,
-                                 UserRepository userRepository,
-                                 ScheduleRepository scheduleRepository,
-                                 TeamMemberRepository teamMemberRepository,
-                                 CategoryRepository categoryRepository) {
+    public PetServiceServiceImpl(PetServiceRepository petServiceRepository, ProviderSupport support) {
         this.petServiceRepository = petServiceRepository;
-        this.userRepository = userRepository;
-        this.scheduleRepository = scheduleRepository;
-        this.teamMemberRepository = teamMemberRepository;
-        this.categoryRepository = categoryRepository;
+        this.support = support;
     }
 
     @Override
     @Transactional(readOnly = true)
-    public PageResponse<ServiceResponse> getAllServices(String search, Long categoryId, Boolean emergency, @NonNull Pageable pageable) {
-        Page<PetService> servicePage = petServiceRepository.findAll(pageable);
-        List<ServiceResponse> content = servicePage.getContent().stream()
-                .map(this::mapToServiceResponse)
-                .toList();
-
-        return PageResponse.<ServiceResponse>builder()
-                .content(content)
-                .pageNumber(servicePage.getNumber())
-                .pageSize(servicePage.getSize())
-                .totalElements(servicePage.getTotalElements())
-                .totalPages(servicePage.getTotalPages())
-                .last(servicePage.isLast())
-                .build();
+    public PageResponse<ServiceResponse> getAllServices(String q, String serviceType, Long providerId, Boolean emergency,
+                                                        int page, int size) {
+        ServiceType type = ServiceType.parse(serviceType);
+        Specification<PetService> spec = (root, query, cb) -> {
+            List<Predicate> p = new ArrayList<>();
+            p.add(cb.or(cb.isNull(root.get("active")), cb.isTrue(root.get("active"))));
+            Subquery<Long> approved = query.subquery(Long.class);
+            var user = approved.from(User.class);
+            approved.select(user.get("id")).where(
+                    cb.equal(user.get("id"), root.get("providerId")),
+                    cb.equal(user.get("status"), UserStatus.ACTIVE),
+                    cb.equal(user.get("role"), Roles.ROLE_SERVICE_PROVIDER),
+                    cb.isNull(user.get("deletedAt")));
+            p.add(cb.exists(approved));
+            if (providerId != null) p.add(cb.equal(root.get("providerId"), providerId));
+            if (Boolean.TRUE.equals(emergency)) p.add(cb.isTrue(root.get("emergencyService")));
+            if (type != null) {
+                Subquery<Long> ofType = query.subquery(Long.class);
+                var profile = ofType.from(ServiceProviderProfile.class);
+                ofType.select(profile.get("providerId")).where(
+                        cb.equal(profile.get("providerId"), root.get("providerId")),
+                        cb.equal(cb.upper(profile.get("serviceType")), type.name()));
+                p.add(cb.exists(ofType));
+            }
+            if (q != null && !q.isBlank()) {
+                String pattern = "%" + MaskUtils.escapeLike(q.trim().toLowerCase(Locale.ROOT)) + "%";
+                p.add(cb.or(cb.like(cb.lower(root.get("title")), pattern, '\\'),
+                        cb.like(cb.lower(cb.coalesce(root.get("description"), "")), pattern, '\\')));
+            }
+            return cb.and(p.toArray(Predicate[]::new));
+        };
+        Page<PetService> result = petServiceRepository.findAll(spec, PageUtils.of(page, size, Sort.by("basePrice", "id")));
+        return PageResponse.of(result, support::toService);
     }
 
     @Override
     @Transactional(readOnly = true)
     public ServiceResponse getServiceById(Long id) {
         PetService service = petServiceRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("PetService", "id", id));
-        return mapToServiceResponse(service);
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public ProviderProfileResponse getProviderProfile(Long providerId) {
-        User provider = userRepository.findById(providerId)
-                .orElseThrow(() -> new ResourceNotFoundException("Provider", "id", providerId));
-
-        List<Schedule> schedules = scheduleRepository.findByProviderId(providerId);
-        List<TeamMember> teamMembers = teamMemberRepository.findByProviderId(providerId);
-
-        List<ScheduleResponse> scheduleResponses = schedules.stream()
-                .map(s -> ScheduleResponse.builder()
-                        .id(s.getId())
-                        .dayOfWeek(s.getDayOfWeek())
-                        .startTime(s.getStartTime())
-                        .endTime(s.getEndTime())
-                        .isActive(s.getIsActive())
-                        .build())
-                .toList();
-
-        List<TeamMemberResponse> teamMemberResponses = teamMembers.stream()
-                .map(tm -> TeamMemberResponse.builder()
-                        .id(tm.getId())
-                        .fullName(tm.getFullName())
-                        .role(tm.getRole())
-                        .experience(tm.getExperience())
-                        .note(tm.getNote())
-                        .avatar(tm.getAvatar())
-                        .build())
-                .toList();
-
-        return ProviderProfileResponse.builder()
-                .providerId(provider.getId())
-                .fullName(provider.getFullName())
-                .phone(provider.getPhone())
-                .email(provider.getEmail())
-                .avatarUrl(provider.getAvatarUrl())
-                .schedules(scheduleResponses)
-                .teamMembers(teamMemberResponses)
-                .build();
-    }
-
-    @Override
-    @Transactional
-    public ServiceResponse createService(CreateServiceRequest request, UserPrincipal currentUser) {
-        if (request.getCategoryId() != null) {
-            categoryRepository.findById(request.getCategoryId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Category", "id", request.getCategoryId()));
-        }
-
-        PetService petService = PetService.builder()
-                .providerId(currentUser.getId())
-                .categoryId(request.getCategoryId())
-                .title(request.getTitle())
-                .description(request.getDescription())
-                .basePrice(request.getBasePrice())
-                .durationMinutes(request.getDurationMinutes())
-                .address(request.getAddress())
-                .amenities(request.getAmenities())
-                .emergencyService(request.getEmergencyService() != null ? request.getEmergencyService() : false)
-                .rating(BigDecimal.valueOf(5.0))
-                .build();
-
-        PetService saved = petServiceRepository.save(petService);
-        return mapToServiceResponse(saved);
-    }
-
-    @Override
-    @Transactional
-    public ServiceResponse updateService(Long id, CreateServiceRequest request, UserPrincipal currentUser) {
-        PetService petService = petServiceRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("PetService", "id", id));
-
-        if (!petService.getProviderId().equals(currentUser.getId())) {
-            throw new BadRequestException("You can only update your own pet services");
-        }
-
-        if (request.getCategoryId() != null) {
-            categoryRepository.findById(request.getCategoryId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Category", "id", request.getCategoryId()));
-            petService.setCategoryId(request.getCategoryId());
-        }
-
-        petService.setTitle(request.getTitle());
-        petService.setDescription(request.getDescription());
-        petService.setBasePrice(request.getBasePrice());
-        petService.setDurationMinutes(request.getDurationMinutes());
-        petService.setAddress(request.getAddress());
-        petService.setAmenities(request.getAmenities());
-        if (request.getEmergencyService() != null) {
-            petService.setEmergencyService(request.getEmergencyService());
-        }
-
-        PetService updated = petServiceRepository.save(petService);
-        return mapToServiceResponse(updated);
-    }
-
-    @Override
-    @Transactional
-    public void deleteService(Long id, UserPrincipal currentUser) {
-        PetService petService = petServiceRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("PetService", "id", id));
-
-        if (!petService.getProviderId().equals(currentUser.getId())) {
-            throw new BadRequestException("You can only delete your own pet services");
-        }
-
-        petServiceRepository.delete(petService);
-    }
-
-    private ServiceResponse mapToServiceResponse(PetService service) {
-        return ServiceResponse.builder()
-                .id(service.getId())
-                .name(service.getTitle())
-                .description(service.getDescription())
-                .price(service.getBasePrice())
-                .durationMinutes(service.getDurationMinutes())
-                .active(true)
-                .categoryId(service.getCategoryId())
-                .build();
+                .filter(s -> !Boolean.FALSE.equals(s.getActive()))
+                .orElseThrow(() -> new ResourceNotFoundException("Service", "id", id));
+        return support.toService(service);
     }
 }

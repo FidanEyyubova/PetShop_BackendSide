@@ -1,35 +1,35 @@
 package com.petshop.backend.dto.response.vendor;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import java.math.BigDecimal;
 
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@Schema(description = "Vendor finance tab. Earnings are counted from delivered orders minus the platform commission.")
 public class VendorFinanceStatsResponse {
+    @Schema(description = "Total of delivered orders (before commission)")
     private BigDecimal totalRevenue;
+    @Schema(description = "Platform commission rate, e.g. 0.10 = 10%")
+    private BigDecimal commissionRate;
+    private BigDecimal commissionAmount;
+    @Schema(description = "totalRevenue - commissionAmount")
+    private BigDecimal netEarnings;
+    @Schema(description = "Net earnings that can be withdrawn now")
     private BigDecimal availableBalance;
+    @Schema(description = "Net value of orders still in progress (pending, processing, shipping)")
+    private BigDecimal pendingBalance;
+    @Schema(description = "Payout requests waiting for approval")
     private BigDecimal pendingPayouts;
-    private Integer totalSalesCount;
-    private Integer completedOrdersCount;
-
-    public VendorFinanceStatsResponse() {}
-    public VendorFinanceStatsResponse(BigDecimal totalRevenue, BigDecimal availableBalance, BigDecimal pendingPayouts, Integer totalSalesCount, Integer completedOrdersCount) {
-        this.totalRevenue = totalRevenue;
-        this.availableBalance = availableBalance;
-        this.pendingPayouts = pendingPayouts;
-        this.totalSalesCount = totalSalesCount;
-        this.completedOrdersCount = completedOrdersCount;
-    }
-
-    public BigDecimal getTotalRevenue() { return totalRevenue; }
-    public void setTotalRevenue(BigDecimal totalRevenue) { this.totalRevenue = totalRevenue; }
-
-    public BigDecimal getAvailableBalance() { return availableBalance; }
-    public void setAvailableBalance(BigDecimal availableBalance) { this.availableBalance = availableBalance; }
-
-    public BigDecimal getPendingPayouts() { return pendingPayouts; }
-    public void setPendingPayouts(BigDecimal pendingPayouts) { this.pendingPayouts = pendingPayouts; }
-
-    public Integer getTotalSalesCount() { return totalSalesCount; }
-    public void setTotalSalesCount(Integer totalSalesCount) { this.totalSalesCount = totalSalesCount; }
-
-    public Integer getCompletedOrdersCount() { return completedOrdersCount; }
-    public void setCompletedOrdersCount(Integer completedOrdersCount) { this.completedOrdersCount = completedOrdersCount; }
+    @Schema(description = "Approved and completed payouts")
+    private BigDecimal totalWithdrawn;
+    @Schema(description = "Units sold in non-cancelled orders")
+    private Long totalSalesCount;
+    private Long completedOrdersCount;
 }

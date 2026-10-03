@@ -5,7 +5,6 @@ import com.petshop.backend.dto.response.common.ApiResponse;
 import com.petshop.backend.dto.response.product.CategoryResponse;
 import com.petshop.backend.service.product.CategoryService;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -17,8 +16,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/admin/categories")
-@Tag(name = "Admin Panel", description = "Unified Admin Panel management endpoints (Hero, Category, SubCategory, Product, Admin-Service, About, Blog, Contact, Messages, Settings)")
-@SecurityRequirement(name = "Bearer Authentication")
+@Tag(name = "Admin - Catalogue", description = "Categories, subcategories and products of every store")
 @PreAuthorize("hasRole('ADMIN')")
 public class AdminCategoryController {
 
@@ -29,7 +27,7 @@ public class AdminCategoryController {
     }
 
     @PostMapping
-    @Operation(summary = "Category - Add category (title, icon)")
+    @Operation(summary = "Create a category", description = "The slug is generated from the title when not sent and is always unique.")
     public ResponseEntity<ApiResponse<CategoryResponse>> createCategory(@Valid @RequestBody CategoryRequest request) {
         CategoryResponse response = categoryService.createCategory(request);
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -37,21 +35,21 @@ public class AdminCategoryController {
     }
 
     @GetMapping
-    @Operation(summary = "Category - Get all categories")
+    @Operation(summary = "List categories", description = "All product categories with their subcategories and product counts.")
     public ResponseEntity<ApiResponse<List<CategoryResponse>>> getAllCategories() {
         List<CategoryResponse> response = categoryService.getAllCategories();
         return ResponseEntity.ok(ApiResponse.success("Categories retrieved successfully", response));
     }
 
     @GetMapping("/{id}")
-    @Operation(summary = "Category - Get category by ID")
+    @Operation(summary = "Get a category", description = "One category with its subcategories.")
     public ResponseEntity<ApiResponse<CategoryResponse>> getCategoryById(@PathVariable Long id) {
         CategoryResponse response = categoryService.getCategoryById(id);
         return ResponseEntity.ok(ApiResponse.success("Category retrieved successfully", response));
     }
 
     @PutMapping("/{id}")
-    @Operation(summary = "Category - Update category by ID")
+    @Operation(summary = "Update a category", description = "Renaming regenerates the slug unless a slug is sent.")
     public ResponseEntity<ApiResponse<CategoryResponse>> updateCategory(
             @PathVariable Long id,
             @Valid @RequestBody CategoryRequest request) {
@@ -60,7 +58,7 @@ public class AdminCategoryController {
     }
 
     @DeleteMapping("/{id}")
-    @Operation(summary = "Category - Delete category by ID")
+    @Operation(summary = "Delete a category", description = "Returns 409 CATEGORY_IN_USE while active products use it.")
     public ResponseEntity<ApiResponse<Void>> deleteCategory(@PathVariable Long id) {
         categoryService.deleteCategory(id);
         return ResponseEntity.ok(ApiResponse.success("Category deleted successfully", null));

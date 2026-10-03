@@ -1,5 +1,6 @@
 package com.petshop.backend.controller.vendor;
 
+import com.petshop.backend.common.Roles;
 import com.petshop.backend.dto.request.vendor.CreatePayoutRequest;
 import com.petshop.backend.dto.request.vendor.VendorBankDetailsRequest;
 import com.petshop.backend.dto.response.common.ApiResponse;
@@ -11,6 +12,7 @@ import com.petshop.backend.service.vendor.VendorFinanceService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -20,60 +22,46 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/vendor/finance")
-@Tag(name = "Vendor Finance Controller", description = "Vendor financial statistics, balance, payout withdrawals, and bank details management")
-@PreAuthorize("hasAnyRole('VENDOR', 'ADMIN')")
+@PreAuthorize("hasAnyRole('" + Roles.VENDOR + "','" + Roles.ADMIN + "')")
+@Tag(name = "Vendor - Finance", description = "Balance, commission, payouts and bank details")
 public class VendorFinanceController {
 
-    private final VendorFinanceService vendorFinanceService;
+    private final VendorFinanceService financeService;
 
-    public VendorFinanceController(VendorFinanceService vendorFinanceService) {
-        this.vendorFinanceService = vendorFinanceService;
+    public VendorFinanceController(VendorFinanceService financeService) {
+        this.financeService = financeService;
     }
 
     @GetMapping("/stats")
-    @Operation(summary = "Get vendor revenue, balance, and payout statistics")
-    public ResponseEntity<ApiResponse<VendorFinanceStatsResponse>> getFinanceStats(
-            @AuthenticationPrincipal UserPrincipal currentUser
-    ) {
-        VendorFinanceStatsResponse response = vendorFinanceService.getFinanceStats(currentUser);
-        return ResponseEntity.ok(ApiResponse.success("Finance statistics fetched successfully", response));
+    @Operation(summary = "Get my finance summary", description = "Revenue of delivered orders, commission, net earnings, available and pending balance, total withdrawn.")
+    public ResponseEntity<ApiResponse<VendorFinanceStatsResponse>> stats(@AuthenticationPrincipal UserPrincipal currentUser) {
+        return ResponseEntity.ok(ApiResponse.success("Finance stats fetched", financeService.getFinanceStats(currentUser)));
     }
 
     @GetMapping("/payouts")
-    @Operation(summary = "Get vendor payout withdrawal history")
-    public ResponseEntity<ApiResponse<List<VendorPayoutResponse>>> getPayoutHistory(
-            @AuthenticationPrincipal UserPrincipal currentUser
-    ) {
-        List<VendorPayoutResponse> response = vendorFinanceService.getPayoutHistory(currentUser);
-        return ResponseEntity.ok(ApiResponse.success("Payout history fetched successfully", response));
+    @Operation(summary = "List my payouts", description = "Withdrawal history; the IBAN is masked.")
+    public ResponseEntity<ApiResponse<List<VendorPayoutResponse>>> payouts(@AuthenticationPrincipal UserPrincipal currentUser) {
+        return ResponseEntity.ok(ApiResponse.success("Payouts fetched", financeService.getPayoutHistory(currentUser)));
     }
 
     @PostMapping("/payouts")
-    @Operation(summary = "Request new payout withdrawal (amount, iban, bankName, accountHolder)")
-    public ResponseEntity<ApiResponse<VendorPayoutResponse>> createPayoutRequest(
-            @Valid @RequestBody CreatePayoutRequest request,
-            @AuthenticationPrincipal UserPrincipal currentUser
-    ) {
-        VendorPayoutResponse response = vendorFinanceService.createPayoutRequest(request, currentUser);
-        return ResponseEntity.ok(ApiResponse.success("Payout request submitted successfully", response));
+    @Operation(summary = "Request a payout", description = "The amount cannot exceed the available balance. Requires an approved account.")
+    public ResponseEntity<ApiResponse<VendorPayoutResponse>> requestPayout(@Valid @RequestBody CreatePayoutRequest request,
+                                                                           @AuthenticationPrincipal UserPrincipal currentUser) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success("Payout requested", financeService.createPayoutRequest(request, currentUser)));
     }
 
     @GetMapping("/bank-details")
-    @Operation(summary = "View vendor bank account details")
-    public ResponseEntity<ApiResponse<VendorBankDetailsResponse>> getBankDetails(
-            @AuthenticationPrincipal UserPrincipal currentUser
-    ) {
-        VendorBankDetailsResponse response = vendorFinanceService.getBankDetails(currentUser);
-        return ResponseEntity.ok(ApiResponse.success("Bank details fetched successfully", response));
+    @Operation(summary = "Get my bank details", description = "IBAN, bank name, account holder and VÖEN.")
+    public ResponseEntity<ApiResponse<VendorBankDetailsResponse>> bankDetails(@AuthenticationPrincipal UserPrincipal currentUser) {
+        return ResponseEntity.ok(ApiResponse.success("Bank details fetched", financeService.getBankDetails(currentUser)));
     }
 
     @PutMapping("/bank-details")
-    @Operation(summary = "Update vendor bank account details")
-    public ResponseEntity<ApiResponse<VendorBankDetailsResponse>> updateBankDetails(
-            @Valid @RequestBody VendorBankDetailsRequest request,
-            @AuthenticationPrincipal UserPrincipal currentUser
-    ) {
-        VendorBankDetailsResponse response = vendorFinanceService.updateBankDetails(request, currentUser);
-        return ResponseEntity.ok(ApiResponse.success("Bank details updated successfully", response));
+    @Operation(summary = "Save my bank details", description = "IBAN in Azerbaijani format; VÖEN is 10 digits.")
+    public ResponseEntity<ApiResponse<VendorBankDetailsResponse>> updateBankDetails(@Valid @RequestBody VendorBankDetailsRequest request,
+                                                                                    @AuthenticationPrincipal UserPrincipal currentUser) {
+        return ResponseEntity.ok(ApiResponse.success("Bank details saved", financeService.updateBankDetails(request, currentUser)));
     }
 }

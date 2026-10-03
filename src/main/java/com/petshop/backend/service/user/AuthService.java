@@ -8,11 +8,13 @@ import com.petshop.backend.dto.response.user.UserResponse;
 import com.petshop.backend.security.UserPrincipal;
 
 public interface AuthService {
+    AuthResponse login(LoginRequest request);
+    AuthResponse loginWithGoogle(GoogleLoginRequest request);
     AuthResponse registerBuyer(RegisterBuyerRequest request);
     AuthResponse registerVendor(RegisterVendorRequest request);
     AuthResponse registerServiceProvider(RegisterServiceProviderRequest request);
-    AuthResponse login(LoginRequest request);
     AuthResponse refreshToken(RefreshTokenRequest request);
+    void logout(LogoutRequest request, UserPrincipal currentUser);
     UserResponse getCurrentUser(UserPrincipal currentUser);
     UserResponse updateProfile(UpdateProfileRequest request, UserPrincipal currentUser);
     void changePassword(ChangePasswordRequest request, UserPrincipal currentUser);

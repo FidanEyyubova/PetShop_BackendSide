@@ -1,114 +1,37 @@
 package com.petshop.backend.dto.response.user;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import java.time.LocalDateTime;
 
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class UserResponse {
     private Long id;
     private String fullName;
     private String email;
     private String phone;
+
+    @Schema(description = "Authority", example = "ROLE_BUYER")
     private String role;
+
+    @Schema(description = "Frontend role name: customer, vendor, service or admin", example = "customer")
+    private String accountType;
+
+    @Schema(description = "ACTIVE, PENDING_APPROVAL, REJECTED or SUSPENDED", example = "ACTIVE")
+    private String status;
+
     private String avatarUrl;
     private String cityAddress;
+
+    @Schema(description = "Vendor's store id (vendors only)")
+    private Long storeId;
+
     private LocalDateTime createdAt;
-
-    public UserResponse() {
-    }
-
-    public UserResponse(Long id, String fullName, String email, String phone, String role, String avatarUrl, String cityAddress, LocalDateTime createdAt) {
-        this.id = id;
-        this.fullName = fullName;
-        this.email = email;
-        this.phone = phone;
-        this.role = role;
-        this.avatarUrl = avatarUrl;
-        this.cityAddress = cityAddress;
-        this.createdAt = createdAt;
-    }
-
-    public static UserResponseBuilder builder() {
-        return new UserResponseBuilder();
-    }
-
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-
-    public String getFullName() { return fullName; }
-    public void setFullName(String fullName) { this.fullName = fullName; }
-
-    public String getEmail() { return email; }
-    public void setEmail(String email) { this.email = email; }
-
-    public String getPhone() { return phone; }
-    public void setPhone(String phone) { this.phone = phone; }
-
-    public String getRole() { return role; }
-    public void setRole(String role) { this.role = role; }
-
-    public String getAvatarUrl() { return avatarUrl; }
-    public void setAvatarUrl(String avatarUrl) { this.avatarUrl = avatarUrl; }
-
-    public String getCityAddress() { return cityAddress; }
-    public void setCityAddress(String cityAddress) { this.cityAddress = cityAddress; }
-
-    public LocalDateTime getCreatedAt() { return createdAt; }
-    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
-
-    public static class UserResponseBuilder {
-        private Long id;
-        private String fullName;
-        private String email;
-        private String phone;
-        private String role;
-        private String avatarUrl;
-        private String cityAddress;
-        private LocalDateTime createdAt;
-
-        UserResponseBuilder() {
-        }
-
-        public UserResponseBuilder id(Long id) {
-            this.id = id;
-            return this;
-        }
-
-        public UserResponseBuilder fullName(String fullName) {
-            this.fullName = fullName;
-            return this;
-        }
-
-        public UserResponseBuilder email(String email) {
-            this.email = email;
-            return this;
-        }
-
-        public UserResponseBuilder phone(String phone) {
-            this.phone = phone;
-            return this;
-        }
-
-        public UserResponseBuilder role(String role) {
-            this.role = role;
-            return this;
-        }
-
-        public UserResponseBuilder avatarUrl(String avatarUrl) {
-            this.avatarUrl = avatarUrl;
-            return this;
-        }
-
-        public UserResponseBuilder cityAddress(String cityAddress) {
-            this.cityAddress = cityAddress;
-            return this;
-        }
-
-        public UserResponseBuilder createdAt(LocalDateTime createdAt) {
-            this.createdAt = createdAt;
-            return this;
-        }
-
-        public UserResponse build() {
-            return new UserResponse(id, fullName, email, phone, role, avatarUrl, cityAddress, createdAt);
-        }
-    }
 }

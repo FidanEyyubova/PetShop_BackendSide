@@ -1,8 +1,22 @@
 package com.petshop.backend.dto.response.common;
 
+import org.springframework.data.domain.Page;
+
 import java.util.List;
+import java.util.function.Function;
 
 public class PageResponse<T> {
+
+    /** Builds a page response from a Spring page whose content was already mapped. */
+    public static <E, T> PageResponse<T> of(Page<E> page, List<T> content) {
+        return new PageResponse<>(content, page.getNumber(), page.getSize(),
+                page.getTotalElements(), page.getTotalPages(), page.isLast());
+    }
+
+    public static <E, T> PageResponse<T> of(Page<E> page, Function<E, T> mapper) {
+        return of(page, page.getContent().stream().map(mapper).toList());
+    }
+
     private List<T> content;
     private int pageNumber;
     private int pageSize;

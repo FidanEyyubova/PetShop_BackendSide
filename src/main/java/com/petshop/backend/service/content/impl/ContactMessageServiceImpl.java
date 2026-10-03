@@ -2,84 +2,87 @@ package com.petshop.backend.service.content.impl;
 
 import com.petshop.backend.dto.request.content.ContactMessageReplyRequest;
 import com.petshop.backend.dto.request.content.ContactMessageRequest;
+import com.petshop.backend.dto.response.common.PageResponse;
 import com.petshop.backend.dto.response.content.ContactMessageResponse;
 import com.petshop.backend.entity.content.ContactMessage;
 import com.petshop.backend.exception.ResourceNotFoundException;
 import com.petshop.backend.repository.content.ContactMessageRepository;
 import com.petshop.backend.service.content.ContactMessageService;
+import com.petshop.backend.service.notification.EmailService;
+import com.petshop.backend.util.PageUtils;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class ContactMessageServiceImpl implements ContactMessageService {
 
     private final ContactMessageRepository repository;
+    private final EmailService emailService;
 
-    public ContactMessageServiceImpl(ContactMessageRepository repository) {
+    public ContactMessageServiceImpl(ContactMessageRepository repository, EmailService emailService) {
         this.repository = repository;
+        this.emailService = emailService;
     }
 
     @Override
+    @Transactional
     public ContactMessageResponse sendContactMessage(ContactMessageRequest request) {
         ContactMessage message = new ContactMessage();
-        message.setFullName(request.getFullName());
-        message.setEmail(request.getEmail());
-        message.setSubject(request.getSubject());
-        message.setMessage(request.getMessage());
+        message.setFullName(request.getFullName().trim());
+        message.setEmail(request.getEmail().trim().toLowerCase());
+        message.setSubject(request.getSubject() == null ? null : request.getSubject().trim());
+        message.setMessage(request.getMessage().trim());
         message.setStatus("PENDING");
-
-        ContactMessage saved = repository.save(message);
-        return mapToResponse(saved);
+        return toResponse(repository.save(message));
     }
 
     @Override
-    public List<ContactMessageResponse> getAllContactMessages() {
-        return repository.findAll().stream()
-                .map(this::mapToResponse)
-                .collect(Collectors.toList());
+    @Transactional(readOnly = true)
+    public PageResponse<ContactMessageResponse> getAllContactMessages(String status, int page, int size) {
+        var pageable = PageUtils.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Page<ContactMessage> result = status == null || status.isBlank()
+                ? repository.findAll(pageable)
+                : repository.findByStatus(status.trim().toUpperCase(), pageable);
+        return PageResponse.of(result, ContactMessageServiceImpl::toResponse);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public ContactMessageResponse getContactMessageById(Long id) {
-        ContactMessage message = repository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("ContactMessage", "id", id));
-        return mapToResponse(message);
+        return toResponse(find(id));
     }
 
+    /** Stores the reply and emails it to the sender (when SMTP is configured). */
     @Override
+    @Transactional
     public ContactMessageResponse replyToMessage(Long id, ContactMessageReplyRequest request) {
-        ContactMessage message = repository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("ContactMessage", "id", id));
-
-        message.setReplyMessage(request.getReplyMessage());
+        ContactMessage message = find(id);
+        message.setReplyMessage(request.getReplyMessage().trim());
         message.setStatus("REPLIED");
         message.setRepliedAt(LocalDateTime.now());
-
-        ContactMessage updated = repository.save(message);
-        return mapToResponse(updated);
+        ContactMessage saved = repository.save(message);
+        emailService.send(saved.getEmail(),
+                "Re: " + (saved.getSubject() == null || saved.getSubject().isBlank() ? "Your message to PetShop" : saved.getSubject()),
+                "Hello " + saved.getFullName() + ",\n\n" + saved.getReplyMessage() + "\n\n---\nYour message:\n" + saved.getMessage());
+        return toResponse(saved);
     }
 
     @Override
+    @Transactional
     public void deleteContactMessage(Long id) {
-        ContactMessage message = repository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("ContactMessage", "id", id));
-        repository.delete(message);
+        repository.delete(find(id));
     }
 
-    private ContactMessageResponse mapToResponse(ContactMessage msg) {
-        return new ContactMessageResponse(
-                msg.getId(),
-                msg.getFullName(),
-                msg.getEmail(),
-                msg.getSubject(),
-                msg.getMessage(),
-                msg.getReplyMessage(),
-                msg.getStatus(),
-                msg.getCreatedAt(),
-                msg.getRepliedAt()
-        );
+    private ContactMessage find(Long id) {
+        return repository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Contact message", "id", id));
+    }
+
+    private static ContactMessageResponse toResponse(ContactMessage m) {
+        return new ContactMessageResponse(m.getId(), m.getFullName(), m.getEmail(), m.getSubject(), m.getMessage(),
+                m.getReplyMessage(), m.getStatus(), m.getCreatedAt(), m.getRepliedAt());
     }
 }

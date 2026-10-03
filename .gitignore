@@ -31,3 +31,6 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# Local image uploads (STORAGE_TYPE=local)
+uploads/

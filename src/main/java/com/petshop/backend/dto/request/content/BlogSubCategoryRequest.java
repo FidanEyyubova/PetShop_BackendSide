@@ -1,18 +1,21 @@
 package com.petshop.backend.dto.request.content;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
+import lombok.Data;
 
+@Data
 public class BlogSubCategoryRequest {
 
     @NotBlank(message = "Title is required")
+    @Size(max = 100)
+    @Schema(example = "Nutrition")
     private String title;
 
-    public BlogSubCategoryRequest() {}
-
-    public BlogSubCategoryRequest(String title) {
-        this.title = title;
-    }
-
-    public String getTitle() { return title; }
-    public void setTitle(String title) { this.title = title; }
+    @Pattern(regexp = "^[a-z0-9]+(-[a-z0-9]+)*$", message = "Slug may contain lower-case letters, digits and dashes")
+    @Size(max = 100)
+    @Schema(description = "Optional; generated from the title", example = "nutrition")
+    private String slug;
 }

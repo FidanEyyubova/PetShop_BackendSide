@@ -19,6 +19,7 @@ public class ContactInfoServiceImpl implements ContactInfoService {
     }
 
     @Override
+    @org.springframework.cache.annotation.Cacheable("contactInfo")
     public ContactInfoResponse getContactInfo() {
         List<ContactInfo> list = repository.findAll();
         if (list.isEmpty()) {
@@ -29,6 +30,7 @@ public class ContactInfoServiceImpl implements ContactInfoService {
     }
 
     @Override
+    @org.springframework.cache.annotation.CacheEvict(cacheNames = "contactInfo", allEntries = true)
     public ContactInfoResponse saveOrUpdateContactInfo(ContactInfoRequest request) {
         List<ContactInfo> list = repository.findAll();
         ContactInfo info = list.isEmpty() ? new ContactInfo() : list.get(0);

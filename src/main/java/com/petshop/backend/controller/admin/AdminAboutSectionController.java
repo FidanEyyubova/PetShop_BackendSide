@@ -5,7 +5,6 @@ import com.petshop.backend.dto.response.common.ApiResponse;
 import com.petshop.backend.dto.response.content.AboutSectionResponse;
 import com.petshop.backend.service.content.AboutSectionService;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -17,8 +16,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/admin/about")
-@Tag(name = "Admin Panel", description = "Unified Admin Panel management endpoints (Hero, Category, SubCategory, Product, Admin-Service, About, Blog, Contact, Messages, Settings)")
-@SecurityRequirement(name = "Bearer Authentication")
+@Tag(name = "Admin - Content", description = "Site content, blog, contact messages and review moderation")
 @PreAuthorize("hasRole('ADMIN')")
 public class AdminAboutSectionController {
 
@@ -29,7 +27,7 @@ public class AdminAboutSectionController {
     }
 
     @PostMapping
-    @Operation(summary = "About Section - Add content (title, subtitle, image)")
+    @Operation(summary = "Create an about section", description = "Title, subtitle, image and description.")
     public ResponseEntity<ApiResponse<AboutSectionResponse>> createAboutSection(@Valid @RequestBody AboutSectionRequest request) {
         AboutSectionResponse response = aboutSectionService.createAboutSection(request);
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -37,21 +35,21 @@ public class AdminAboutSectionController {
     }
 
     @GetMapping
-    @Operation(summary = "About Section - Get content")
+    @Operation(summary = "List about sections", description = "Content blocks of the About section.")
     public ResponseEntity<ApiResponse<List<AboutSectionResponse>>> getAllAboutSections() {
         List<AboutSectionResponse> response = aboutSectionService.getAllAboutSections();
         return ResponseEntity.ok(ApiResponse.success("About sections retrieved successfully", response));
     }
 
     @GetMapping("/{id}")
-    @Operation(summary = "About Section - Get content by ID")
+    @Operation(summary = "Get an about section", description = "One content block.")
     public ResponseEntity<ApiResponse<AboutSectionResponse>> getAboutSectionById(@PathVariable Long id) {
         AboutSectionResponse response = aboutSectionService.getAboutSectionById(id);
         return ResponseEntity.ok(ApiResponse.success("About section retrieved successfully", response));
     }
 
     @PutMapping("/{id}")
-    @Operation(summary = "About Section - Update content by ID")
+    @Operation(summary = "Update an about section", description = "Replaces the block's fields.")
     public ResponseEntity<ApiResponse<AboutSectionResponse>> updateAboutSection(
             @PathVariable Long id,
             @Valid @RequestBody AboutSectionRequest request) {
@@ -60,7 +58,7 @@ public class AdminAboutSectionController {
     }
 
     @DeleteMapping("/{id}")
-    @Operation(summary = "About Section - Delete content by ID")
+    @Operation(summary = "Delete an about section", description = "Removes the block.")
     public ResponseEntity<ApiResponse<Void>> deleteAboutSection(@PathVariable Long id) {
         aboutSectionService.deleteAboutSection(id);
         return ResponseEntity.ok(ApiResponse.success("About section deleted successfully", null));

@@ -352,4 +352,7 @@
             columnName="password_hash"
             columnDataType="VARCHAR(255)" />
     </changeSet>
+
+    <!-- Schema alignment for the storefront and dashboards (idempotent, PostgreSQL). -->
+    <include file="db/changelog/changes/002-frontend-alignment.sql" />
 </databaseChangeLog>

@@ -1,43 +1,64 @@
 package com.petshop.backend.repository.product;
 
 import com.petshop.backend.entity.product.Product;
-import org.springframework.data.domain.Page;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import java.math.BigDecimal;
+
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
-public interface ProductRepository extends JpaRepository<Product, Long> {
-    Optional<Product> findBySlug(String slug);
-    List<Product> findByStoreId(Long storeId);
-    List<Product> findByVendorId(Long vendorId);
-    List<Product> findByStoreIdAndStockQuantityLessThan(Long storeId, Integer threshold);
+public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpecificationExecutor<Product> {
 
-    @Query("SELECT p FROM Product p WHERE " +
-           "(CAST(:search AS string) IS NULL OR LOWER(p.title) LIKE LOWER(CONCAT('%', CAST(:search AS string), '%'))) AND " +
-           "(:categoryId IS NULL OR p.categoryId = :categoryId) AND " +
-           "(:subCategoryId IS NULL OR p.subCategoryId = :subCategoryId) AND " +
-           "(CAST(:petType AS string) IS NULL OR LOWER(p.petType) = LOWER(CAST(:petType AS string))) AND " +
-           "(CAST(:categoryName AS string) IS NULL OR LOWER(p.categoryName) = LOWER(CAST(:categoryName AS string))) AND " +
-           "(CAST(:brand AS string) IS NULL OR LOWER(p.brand) = LOWER(CAST(:brand AS string))) AND " +
-           "(:storeId IS NULL OR p.storeId = :storeId) AND " +
-           "(:minPrice IS NULL OR p.price >= :minPrice) AND " +
-           "(:maxPrice IS NULL OR p.price <= :maxPrice) AND " +
-           "(:inStock IS NULL OR (:inStock = true AND p.stockQuantity > 0) OR (:inStock = false AND (p.stockQuantity IS NULL OR p.stockQuantity = 0)))")
-    Page<Product> filterProducts(
-            @Param("search") String search,
-            @Param("categoryId") Long categoryId,
-            @Param("subCategoryId") Long subCategoryId,
-            @Param("petType") String petType,
-            @Param("categoryName") String categoryName,
-            @Param("brand") String brand,
-            @Param("storeId") Long storeId,
-            @Param("minPrice") BigDecimal minPrice,
-            @Param("maxPrice") BigDecimal maxPrice,
-            @Param("inStock") Boolean inStock,
-            Pageable pageable
-    );
+    Optional<Product> findBySlugAndDeletedAtIsNull(String slug);
+
+    Optional<Product> findByIdAndDeletedAtIsNull(Long id);
+
+    boolean existsBySlug(String slug);
+
+    boolean existsByStoreIdAndSkuIgnoreCaseAndDeletedAtIsNull(Long storeId, String sku);
+
+    boolean existsByStoreIdAndSkuIgnoreCaseAndDeletedAtIsNullAndIdNot(Long storeId, String sku, Long id);
+
+    /** Locks the rows for the stock check-and-decrement during checkout. */
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT p FROM Product p WHERE p.id IN :ids ORDER BY p.id")
+    List<Product> findAllByIdForUpdate(@Param("ids") Collection<Long> ids);
+
+    @Query("SELECT p.id FROM Product p WHERE p.deletedAt IS NULL AND p.isActive = true AND p.soldCount > 0 " +
+           "ORDER BY p.soldCount DESC, p.rating DESC")
+    List<Long> findBestSellerIds(Pageable pageable);
+
+    /** Same category first, then same pet type. Pass -1 / "" when the product has no category / pet type. */
+    @Query("SELECT p FROM Product p WHERE p.deletedAt IS NULL AND p.isActive = true AND p.id <> :id " +
+           "AND (p.categoryId = :categoryId OR p.petType = :petType) " +
+           "ORDER BY CASE WHEN p.categoryId = :categoryId THEN 0 ELSE 1 END, p.soldCount DESC, p.createdAt DESC")
+    List<Product> findRelated(@Param("id") Long id, @Param("categoryId") Long categoryId,
+                              @Param("petType") String petType, Pageable pageable);
+
+    long countByStoreIdAndDeletedAtIsNullAndIsActiveTrue(Long storeId);
+
+    long countByVendorIdAndDeletedAtIsNull(Long vendorId);
+
+    @Query("SELECT COUNT(p) FROM Product p WHERE p.vendorId = :vendorId AND p.deletedAt IS NULL " +
+           "AND p.stockQuantity > 0 AND p.stockQuantity <= :threshold")
+    long countLowStock(@Param("vendorId") Long vendorId, @Param("threshold") int threshold);
+
+    @Query("SELECT p.petType, COUNT(p) FROM Product p WHERE p.deletedAt IS NULL AND p.isActive = true " +
+           "AND p.petType IS NOT NULL GROUP BY p.petType")
+    List<Object[]> countActiveByPetType();
+
+    @Query("SELECT p.categoryId, COUNT(p) FROM Product p WHERE p.deletedAt IS NULL AND p.isActive = true " +
+           "AND p.categoryId IS NOT NULL GROUP BY p.categoryId")
+    List<Object[]> countActiveByCategory();
+
+    @Modifying
+    @Query("UPDATE Product p SET p.rating = :rating, p.reviewCount = :count WHERE p.id = :id")
+    void updateRating(@Param("id") Long id, @Param("rating") java.math.BigDecimal rating, @Param("count") int count);
 }

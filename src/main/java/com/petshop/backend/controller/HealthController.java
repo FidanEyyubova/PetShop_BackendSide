@@ -20,8 +20,9 @@ public class HealthController {
 
     @Hidden
     @Operation(hidden = true)
-    @GetMapping({"/swagger", "/swagger/", "/docs"})
-    public RedirectView redirectToSwagger() {
+    @GetMapping({"/swagger", "/swagger/", "/docs", "/docs/"})
+    public RedirectView redirectToDocs() {
+        // The themed Swagger UI (see SwaggerUiCustomizer).
         return new RedirectView("/swagger-ui/index.html");
     }
 }

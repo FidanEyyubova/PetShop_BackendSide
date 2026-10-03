@@ -8,6 +8,7 @@ import com.petshop.backend.service.user.AddressService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -16,7 +17,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/users/addresses")
-@Tag(name = "Address Controller", description = "User delivery address management")
+@Tag(name = "Buyer Addresses", description = "Delivery addresses; exactly one default address per user")
 public class AddressController {
 
     private final AddressService addressService;
@@ -26,52 +27,38 @@ public class AddressController {
     }
 
     @GetMapping
-    @Operation(summary = "Get list of user delivery addresses")
-    public ResponseEntity<ApiResponse<List<UserAddressResponse>>> getUserAddresses(
-            @AuthenticationPrincipal UserPrincipal currentUser
-    ) {
-        List<UserAddressResponse> response = addressService.getUserAddresses(currentUser);
-        return ResponseEntity.ok(ApiResponse.success("Addresses fetched successfully", response));
+    @Operation(summary = "List my addresses", description = "The default address comes first.")
+    public ResponseEntity<ApiResponse<List<UserAddressResponse>>> list(@AuthenticationPrincipal UserPrincipal currentUser) {
+        return ResponseEntity.ok(ApiResponse.success("Addresses fetched", addressService.getUserAddresses(currentUser)));
     }
 
     @PostMapping
-    @Operation(summary = "Add a new delivery address")
-    public ResponseEntity<ApiResponse<UserAddressResponse>> createAddress(
-            @Valid @RequestBody AddressRequest request,
-            @AuthenticationPrincipal UserPrincipal currentUser
-    ) {
-        UserAddressResponse response = addressService.createAddress(request, currentUser);
-        return ResponseEntity.ok(ApiResponse.success("Address created successfully", response));
+    @Operation(summary = "Add an address", description = "The first address becomes the default.")
+    public ResponseEntity<ApiResponse<UserAddressResponse>> create(@Valid @RequestBody AddressRequest request,
+                                                                   @AuthenticationPrincipal UserPrincipal currentUser) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success("Address added", addressService.createAddress(request, currentUser)));
     }
 
     @PutMapping("/{id}")
-    @Operation(summary = "Edit an existing delivery address")
-    public ResponseEntity<ApiResponse<UserAddressResponse>> updateAddress(
-            @PathVariable Long id,
-            @Valid @RequestBody AddressRequest request,
-            @AuthenticationPrincipal UserPrincipal currentUser
-    ) {
-        UserAddressResponse response = addressService.updateAddress(id, request, currentUser);
-        return ResponseEntity.ok(ApiResponse.success("Address updated successfully", response));
+    @Operation(summary = "Update an address")
+    public ResponseEntity<ApiResponse<UserAddressResponse>> update(@PathVariable Long id,
+                                                                   @Valid @RequestBody AddressRequest request,
+                                                                   @AuthenticationPrincipal UserPrincipal currentUser) {
+        return ResponseEntity.ok(ApiResponse.success("Address updated", addressService.updateAddress(id, request, currentUser)));
     }
 
     @DeleteMapping("/{id}")
-    @Operation(summary = "Delete a delivery address")
-    public ResponseEntity<ApiResponse<Void>> deleteAddress(
-            @PathVariable Long id,
-            @AuthenticationPrincipal UserPrincipal currentUser
-    ) {
+    @Operation(summary = "Delete an address", description = "If it was the default, the next address becomes default.")
+    public ResponseEntity<ApiResponse<Void>> delete(@PathVariable Long id, @AuthenticationPrincipal UserPrincipal currentUser) {
         addressService.deleteAddress(id, currentUser);
-        return ResponseEntity.ok(ApiResponse.success("Address deleted successfully"));
+        return ResponseEntity.ok(ApiResponse.success("Address deleted"));
     }
 
     @PutMapping("/{id}/default")
-    @Operation(summary = "Set address as primary default address")
-    public ResponseEntity<ApiResponse<UserAddressResponse>> setDefaultAddress(
-            @PathVariable Long id,
-            @AuthenticationPrincipal UserPrincipal currentUser
-    ) {
-        UserAddressResponse response = addressService.setDefaultAddress(id, currentUser);
-        return ResponseEntity.ok(ApiResponse.success("Default address updated successfully", response));
+    @Operation(summary = "Make an address the default")
+    public ResponseEntity<ApiResponse<UserAddressResponse>> setDefault(@PathVariable Long id,
+                                                                       @AuthenticationPrincipal UserPrincipal currentUser) {
+        return ResponseEntity.ok(ApiResponse.success("Default address set", addressService.setDefaultAddress(id, currentUser)));
     }
 }

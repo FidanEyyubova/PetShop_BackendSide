@@ -42,6 +42,7 @@ public class Category {
     @PrePersist
     protected void onCreate() {
         if (this.createdAt == null) this.createdAt = LocalDateTime.now();
+        if (this.type == null || this.type.isBlank()) this.type = "PRODUCT";
     }
 
     public Long getId() { return id; }

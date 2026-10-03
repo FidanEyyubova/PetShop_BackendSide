@@ -1,27 +1,25 @@
 package com.petshop.backend.dto.response.content;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import java.time.LocalDateTime;
 
+/** Blog category (health, nutrition, grooming, training, adoption ...). */
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class BlogSubCategoryResponse {
-
     private Long id;
+    @Schema(example = "Nutrition")
     private String title;
+    @Schema(example = "nutrition")
+    private String slug;
+    @Schema(description = "Number of posts")
+    private long count;
     private LocalDateTime createdAt;
-
-    public BlogSubCategoryResponse() {}
-
-    public BlogSubCategoryResponse(Long id, String title, LocalDateTime createdAt) {
-        this.id = id;
-        this.title = title;
-        this.createdAt = createdAt;
-    }
-
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-
-    public String getTitle() { return title; }
-    public void setTitle(String title) { this.title = title; }
-
-    public LocalDateTime getCreatedAt() { return createdAt; }
-    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 }

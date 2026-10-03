@@ -1,25 +1,47 @@
 package com.petshop.backend.dto.request.auth;
 
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
+import com.fasterxml.jackson.annotation.JsonAlias;
+import com.petshop.backend.common.ValidationPatterns;
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.*;
 import lombok.Data;
 
 @Data
 public class RegisterBuyerRequest {
-    @NotBlank(message = "Ad və soyad boş ola bilməz")
+
+    @NotBlank(message = "Full name is required")
+    @Size(min = 2, max = 100, message = "Full name must be 2-100 characters")
+    @Schema(example = "Aysel Məmmədova")
     private String fullName;
 
-    @NotBlank(message = "E-poçt ünvanı mütləqdir")
-    @Email(message = "Düzgün e-poçt daxil edin")
+    @NotBlank(message = "Email is required")
+    @Email(message = "Enter a valid email address")
+    @Size(max = 150)
+    @Schema(example = "aysel@example.com")
     private String email;
 
-    @NotBlank(message = "Şifrə boş ola bilməz")
-    @Size(min = 6, message = "Şifrə minimum 6 simvol olmalıdır")
+    @JsonAlias("phoneNum")
+    @Pattern(regexp = ValidationPatterns.PHONE, message = ValidationPatterns.PHONE_MESSAGE)
+    @Schema(description = "Also accepted as `phoneNum`", example = "+994 50 123 45 67")
+    private String phone;
+
+    @NotBlank(message = "Password is required")
+    @Pattern(regexp = ValidationPatterns.PASSWORD, message = ValidationPatterns.PASSWORD_MESSAGE)
+    @Schema(example = "Secret123")
     private String password;
 
+    @NotBlank(message = "Password confirmation is required")
+    @Schema(example = "Secret123")
     private String confirmPassword;
-    private String phone;
+
+    @Schema(description = "Must be true when sent", example = "true")
+    private Boolean agreeTerms;
+
+    @Pattern(regexp = ValidationPatterns.IMAGE_URL, message = ValidationPatterns.IMAGE_URL_MESSAGE)
+    @Size(max = 1000)
+    @Schema(description = "URL returned by POST /api/v1/files")
     private String avatarUrl;
+
+    @Size(max = 255)
     private String cityAddress;
 }

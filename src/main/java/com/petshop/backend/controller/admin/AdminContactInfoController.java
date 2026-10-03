@@ -5,7 +5,6 @@ import com.petshop.backend.dto.response.common.ApiResponse;
 import com.petshop.backend.dto.response.content.ContactInfoResponse;
 import com.petshop.backend.service.content.ContactInfoService;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -14,8 +13,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/admin/contact-info")
-@Tag(name = "Admin Panel", description = "Unified Admin Panel management endpoints (Hero, Category, SubCategory, Product, Admin-Service, About, Blog, Contact, Messages, Settings)")
-@SecurityRequirement(name = "Bearer Authentication")
+@Tag(name = "Admin - Content", description = "Site content, blog, contact messages and review moderation")
 @PreAuthorize("hasRole('ADMIN')")
 public class AdminContactInfoController {
 
@@ -26,14 +24,14 @@ public class AdminContactInfoController {
     }
 
     @GetMapping
-    @Operation(summary = "Contact Page - Get contact info (location, mail, phone, working hours, location map)")
+    @Operation(summary = "Get contact info", description = "Address, email, phone, working hours and map URL shown on the contact page.")
     public ResponseEntity<ApiResponse<ContactInfoResponse>> getContactInfo() {
         ContactInfoResponse response = contactInfoService.getContactInfo();
         return ResponseEntity.ok(ApiResponse.success("Contact info retrieved successfully", response));
     }
 
     @PostMapping
-    @Operation(summary = "Contact Page - Save/Update contact info")
+    @Operation(summary = "Save contact info", description = "Creates or updates the single contact-info record.")
     public ResponseEntity<ApiResponse<ContactInfoResponse>> saveContactInfo(@Valid @RequestBody ContactInfoRequest request) {
         ContactInfoResponse response = contactInfoService.saveOrUpdateContactInfo(request);
         return ResponseEntity.ok(ApiResponse.success("Contact info saved successfully", response));

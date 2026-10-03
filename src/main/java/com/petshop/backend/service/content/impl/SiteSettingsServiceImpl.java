@@ -19,6 +19,7 @@ public class SiteSettingsServiceImpl implements SiteSettingsService {
     }
 
     @Override
+    @org.springframework.cache.annotation.Cacheable("siteSettings")
     public SiteSettingsResponse getSettings() {
         List<SiteSettings> list = repository.findAll();
         if (list.isEmpty()) {
@@ -28,6 +29,7 @@ public class SiteSettingsServiceImpl implements SiteSettingsService {
     }
 
     @Override
+    @org.springframework.cache.annotation.CacheEvict(cacheNames = "siteSettings", allEntries = true)
     public SiteSettingsResponse saveOrUpdateSettings(SiteSettingsRequest request) {
         List<SiteSettings> list = repository.findAll();
         SiteSettings settings = list.isEmpty() ? new SiteSettings() : list.get(0);

@@ -1,40 +1,30 @@
 package com.petshop.backend.dto.request.content;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+import lombok.Data;
 
+@Data
 public class ContactMessageRequest {
 
-    @NotBlank(message = "Full name is required")
+    @NotBlank(message = "Name is required")
+    @Size(max = 100)
+    @JsonAlias("name")
+    @Schema(description = "Also accepted as `name` (frontend field)", example = "Aysel")
     private String fullName;
 
     @NotBlank(message = "Email is required")
-    @Email(message = "Invalid email format")
+    @Email(message = "Enter a valid email address")
+    @Size(max = 150)
     private String email;
 
+    @Size(max = 200)
     private String subject;
 
-    @NotBlank(message = "Message content is required")
+    @NotBlank(message = "Message is required")
+    @Size(min = 5, max = 5000, message = "Message must be 5-5000 characters")
     private String message;
-
-    public ContactMessageRequest() {}
-
-    public ContactMessageRequest(String fullName, String email, String subject, String message) {
-        this.fullName = fullName;
-        this.email = email;
-        this.subject = subject;
-        this.message = message;
-    }
-
-    public String getFullName() { return fullName; }
-    public void setFullName(String fullName) { this.fullName = fullName; }
-
-    public String getEmail() { return email; }
-    public void setEmail(String email) { this.email = email; }
-
-    public String getSubject() { return subject; }
-    public void setSubject(String subject) { this.subject = subject; }
-
-    public String getMessage() { return message; }
-    public void setMessage(String message) { this.message = message; }
 }

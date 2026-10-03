@@ -5,19 +5,17 @@ import com.petshop.backend.dto.response.common.ApiResponse;
 import com.petshop.backend.dto.response.content.ContactMessageResponse;
 import com.petshop.backend.service.content.ContactMessageService;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
+import com.petshop.backend.dto.response.common.PageResponse;
 
 @RestController
 @RequestMapping("/api/v1/admin/contact-messages")
-@Tag(name = "Admin Panel", description = "Unified Admin Panel management endpoints (Hero, Category, SubCategory, Product, Admin-Service, About, Blog, Contact, Messages, Settings)")
-@SecurityRequirement(name = "Bearer Authentication")
+@Tag(name = "Admin - Content", description = "Site content, blog, contact messages and review moderation")
 @PreAuthorize("hasRole('ADMIN')")
 public class AdminContactMessageController {
 
@@ -28,21 +26,24 @@ public class AdminContactMessageController {
     }
 
     @GetMapping
-    @Operation(summary = "Messages - Get all messages sent from contact page")
-    public ResponseEntity<ApiResponse<List<ContactMessageResponse>>> getAllContactMessages() {
-        List<ContactMessageResponse> response = contactMessageService.getAllContactMessages();
-        return ResponseEntity.ok(ApiResponse.success("Contact messages retrieved successfully", response));
+    @Operation(summary = "List contact messages", description = "Messages sent from the contact form, newest first. Filter by status PENDING or REPLIED.")
+    public ResponseEntity<ApiResponse<PageResponse<ContactMessageResponse>>> getAllContactMessages(
+            @RequestParam(required = false) String status,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        return ResponseEntity.ok(ApiResponse.success("Contact messages fetched",
+                contactMessageService.getAllContactMessages(status, page, size)));
     }
 
     @GetMapping("/{id}")
-    @Operation(summary = "Messages - Get message details by ID")
+    @Operation(summary = "Get a contact message", description = "One message with its reply.")
     public ResponseEntity<ApiResponse<ContactMessageResponse>> getContactMessageById(@PathVariable Long id) {
         ContactMessageResponse response = contactMessageService.getContactMessageById(id);
         return ResponseEntity.ok(ApiResponse.success("Contact message retrieved successfully", response));
     }
 
     @PostMapping("/{id}/reply")
-    @Operation(summary = "Messages - Send reply to user message")
+    @Operation(summary = "Reply to a contact message", description = "Stores the reply, marks the message REPLIED and emails the sender (when SMTP is configured).")
     public ResponseEntity<ApiResponse<ContactMessageResponse>> replyToMessage(
             @PathVariable Long id,
             @Valid @RequestBody ContactMessageReplyRequest request) {
@@ -51,7 +52,7 @@ public class AdminContactMessageController {
     }
 
     @DeleteMapping("/{id}")
-    @Operation(summary = "Messages - Delete contact message by ID")
+    @Operation(summary = "Delete a contact message", description = "Removes the message.")
     public ResponseEntity<ApiResponse<Void>> deleteContactMessage(@PathVariable Long id) {
         contactMessageService.deleteContactMessage(id);
         return ResponseEntity.ok(ApiResponse.success("Contact message deleted successfully", null));

@@ -13,9 +13,11 @@ spring:
     driver-class-name: org.postgresql.Driver
 
   jpa:
+    # Liquibase owns the schema; Hibernate only checks that entities match it.
     hibernate:
-      ddl-auto: update
-    show-sql: true
+      ddl-auto: validate
+    open-in-view: false
+    show-sql: ${SHOW_SQL:false}
     properties:
       hibernate:
         format_sql: true
@@ -24,18 +26,96 @@ spring:
     change-log: classpath:db/changelog/db.changelog-master.xml
     enabled: true
 
-jwt:
-  secret: ${JWT_SECRET:MySuperSecretKeyForPetShopJWTTokenGeneration2026MasterKeyExtremelyLongSecureKey512BitRequirementFixed!}
-  expiration: ${JWT_EXPIRATION:86400000}
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 6MB
+
+  jackson:
+    default-property-inclusion: always
+    serialization:
+      write-dates-as-timestamps: false
+
+  # Optional SMTP. When MAIL_HOST is empty, emails are logged instead of sent.
+  mail:
+    host: ${MAIL_HOST:}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+  cache:
+    type: simple
+    cache-names: contactInfo,siteSettings
+
+app:
+  timezone: Asia/Baku
+  frontend-url: ${FRONTEND_URL:https://pet-shop-frontend-side.vercel.app}
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:https://pet-shop-frontend-side.vercel.app,http://localhost:5173,http://localhost:3000}
+  shipping:
+    free-threshold: ${SHIPPING_FREE_THRESHOLD:50.00}
+    fee: ${SHIPPING_FEE:5.00}
+    delivery-hours-from: 24
+    delivery-hours-to: 48
+  finance:
+    commission-rate: ${COMMISSION_RATE:0.10}
+    low-stock-threshold: 5
+  storage:
+    type: ${STORAGE_TYPE:local}
+    local-dir: ${STORAGE_LOCAL_DIR:uploads}
+    public-base-url: ${STORAGE_PUBLIC_BASE_URL:}
+    s3:
+      bucket: ${S3_BUCKET:}
+      region: ${S3_REGION:auto}
+      endpoint: ${S3_ENDPOINT:}
+      access-key: ${S3_ACCESS_KEY:}
+      secret-key: ${S3_SECRET_KEY:}
+  admin:
+    email: ${ADMIN_EMAIL:}
+    password: ${ADMIN_PASSWORD:}
+  jwt:
+    secret: ${JWT_SECRET:}
+    access-token-minutes: ${JWT_ACCESS_TOKEN_MINUTES:60}
+    refresh-token-days: ${JWT_REFRESH_TOKEN_DAYS:30}
+    short-refresh-token-hours: 24
+  mail:
+    from: ${MAIL_FROM:no-reply@petshop.az}
+    from-name: ${MAIL_FROM_NAME:PetShop}
+    notify-to: ${MAIL_NOTIFY_TO:}
+  google:
+    client-id: ${GOOGLE_CLIENT_ID:}
+  rate-limit:
+    enabled: ${RATE_LIMIT_ENABLED:true}
+    auth-per-minute: 10
+    forms-per-minute: 5
+    reviews-per-minute: 10
+    events-per-minute: 60
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: never
 
 springdoc:
   swagger-ui:
     path: /swagger-ui.html
-    operationsSorter: alpha
+    # Operation ordering and auto-login are added in SwaggerUiCustomizer.
+    docExpansion: none
+    displayRequestDuration: true
+    persistAuthorization: true
+    filter: true
+    urlsPrimaryName: All endpoints
   api-docs:
     path: /v3/api-docs
-  pathsToExclude:
-    - /
-    - /docs
-    - /swagger
-    - /swagger/
+  default-produces-media-type: application/json
+  paths-to-exclude: /, /docs, /swagger, /swagger/

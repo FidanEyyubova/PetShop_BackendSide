@@ -1,10 +1,10 @@
 package com.petshop.backend.controller.order;
 
 import com.petshop.backend.dto.request.order.AddToWishlistRequest;
-import com.petshop.backend.dto.request.order.UpdateWishlistItemRequest;
+import com.petshop.backend.dto.request.order.MergeWishlistRequest;
 import com.petshop.backend.dto.response.common.ApiResponse;
-import com.petshop.backend.dto.response.order.WishlistItemResponse;
 import com.petshop.backend.dto.response.order.WishlistResponse;
+import com.petshop.backend.dto.response.order.WishlistToggleResponse;
 import com.petshop.backend.security.UserPrincipal;
 import com.petshop.backend.service.order.WishlistService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/wishlist")
-@Tag(name = "Wishlist Controller", description = "User wishlist management (add, update quantity, remove item, clear wishlist)")
+@Tag(name = "Wishlist", description = "Favourite products (one row per product; hidden or deleted products are left out)")
 public class WishlistController {
 
     private final WishlistService wishlistService;
@@ -26,109 +26,52 @@ public class WishlistController {
     }
 
     @GetMapping
-    @Operation(summary = "Get user wishlist")
-    public ResponseEntity<ApiResponse<WishlistResponse>> getUserWishlist(@AuthenticationPrincipal UserPrincipal currentUser) {
-        WishlistResponse response = wishlistService.getUserWishlist(currentUser);
-        return ResponseEntity.ok(
-                ApiResponse.<WishlistResponse>builder()
-                        .success(true)
-                        .message("Wishlist details fetched successfully")
-                        .data(response)
-                        .build()
-        );
-    }
-
-    @GetMapping("/items/{itemId}")
-    @Operation(summary = "Get wishlist item details by ID")
-    public ResponseEntity<ApiResponse<WishlistItemResponse>> getWishlistItemById(
-            @PathVariable Long itemId,
-            @AuthenticationPrincipal UserPrincipal currentUser
-    ) {
-        WishlistItemResponse response = wishlistService.getWishlistItemById(itemId, currentUser);
-        return ResponseEntity.ok(
-                ApiResponse.<WishlistItemResponse>builder()
-                        .success(true)
-                        .message("Wishlist item fetched successfully")
-                        .data(response)
-                        .build()
-        );
+    @Operation(summary = "Get my wishlist", description = "Product cards plus a productIds array.")
+    public ResponseEntity<ApiResponse<WishlistResponse>> get(@AuthenticationPrincipal UserPrincipal currentUser) {
+        return ResponseEntity.ok(ApiResponse.success("Wishlist fetched", wishlistService.getUserWishlist(currentUser)));
     }
 
     @PostMapping("/items")
-    @Operation(summary = "Add product to wishlist")
-    public ResponseEntity<ApiResponse<WishlistResponse>> addToWishlist(
-            @Valid @RequestBody AddToWishlistRequest request,
-            @AuthenticationPrincipal UserPrincipal currentUser
-    ) {
-        WishlistResponse response = wishlistService.addToWishlist(request.getProductId(), request.getQuantity(), currentUser);
-        return ResponseEntity.ok(
-                ApiResponse.<WishlistResponse>builder()
-                        .success(true)
-                        .message("Product added to wishlist successfully")
-                        .data(response)
-                        .build()
-        );
-    }
-
-    @PutMapping("/items/{itemId}")
-    @Operation(summary = "Update wishlist item quantity")
-    public ResponseEntity<ApiResponse<WishlistResponse>> updateWishlistItemQuantity(
-            @PathVariable Long itemId,
-            @Valid @RequestBody UpdateWishlistItemRequest request,
-            @AuthenticationPrincipal UserPrincipal currentUser
-    ) {
-        WishlistResponse response = wishlistService.updateWishlistItemQuantity(itemId, request.getQuantity(), currentUser);
-        return ResponseEntity.ok(
-                ApiResponse.<WishlistResponse>builder()
-                        .success(true)
-                        .message("Wishlist item quantity updated successfully")
-                        .data(response)
-                        .build()
-        );
-    }
-
-    @DeleteMapping("/items/{itemId}")
-    @Operation(summary = "Remove item from wishlist")
-    public ResponseEntity<ApiResponse<WishlistResponse>> removeFromWishlist(
-            @PathVariable Long itemId,
-            @AuthenticationPrincipal UserPrincipal currentUser
-    ) {
-        WishlistResponse response = wishlistService.removeFromWishlist(itemId, currentUser);
-        return ResponseEntity.ok(
-                ApiResponse.<WishlistResponse>builder()
-                        .success(true)
-                        .message("Item removed from wishlist successfully")
-                        .data(response)
-                        .build()
-        );
-    }
-
-    @DeleteMapping("/clear")
-    @Operation(summary = "Clear all items from wishlist")
-    public ResponseEntity<ApiResponse<Void>> clearWishlist(@AuthenticationPrincipal UserPrincipal currentUser) {
-        wishlistService.clearWishlist(currentUser);
-        return ResponseEntity.ok(
-                ApiResponse.<Void>builder()
-                        .success(true)
-                        .message("Wishlist cleared successfully")
-                        .data(null)
-                        .build()
-        );
+    @Operation(summary = "Add a product", description = "Adds the product (or increases its quantity). Returns 409 when stock is not enough.")
+    public ResponseEntity<ApiResponse<WishlistResponse>> add(@Valid @RequestBody AddToWishlistRequest request,
+                                                             @AuthenticationPrincipal UserPrincipal currentUser) {
+        return ResponseEntity.ok(ApiResponse.success("Added to wishlist",
+                wishlistService.addToWishlist(request.getProductId(), currentUser)));
     }
 
     @PostMapping("/toggle/{productId}")
-    @Operation(summary = "Toggle product in wishlist (add if missing, remove if present)")
-    public ResponseEntity<ApiResponse<Boolean>> toggleWishlist(
-            @PathVariable Long productId,
-            @AuthenticationPrincipal UserPrincipal currentUser
-    ) {
-        boolean inWishlist = wishlistService.toggleWishlist(productId, currentUser);
-        return ResponseEntity.ok(
-                ApiResponse.<Boolean>builder()
-                        .success(true)
-                        .message(inWishlist ? "Product added to wishlist" : "Product removed from wishlist")
-                        .data(inWishlist)
-                        .build()
-        );
+    @Operation(summary = "Toggle a product", description = "Heart icon: adds the product when missing, removes it when present. Returns the new state and count.")
+    public ResponseEntity<ApiResponse<WishlistToggleResponse>> toggle(@PathVariable Long productId,
+                                                                      @AuthenticationPrincipal UserPrincipal currentUser) {
+        WishlistToggleResponse result = wishlistService.toggleWishlist(productId, currentUser);
+        return ResponseEntity.ok(ApiResponse.success(result.isInWishlist() ? "Added to wishlist" : "Removed from wishlist", result));
+    }
+
+    @DeleteMapping("/products/{productId}")
+    @Operation(summary = "Remove a product", description = "Removes a product by its product id.")
+    public ResponseEntity<ApiResponse<WishlistResponse>> removeProduct(@PathVariable Long productId,
+                                                                       @AuthenticationPrincipal UserPrincipal currentUser) {
+        return ResponseEntity.ok(ApiResponse.success("Removed from wishlist", wishlistService.removeProduct(productId, currentUser)));
+    }
+
+    @DeleteMapping("/items/{itemId}")
+    @Operation(summary = "Remove a wishlist item", description = "Removes one row by its wishlist id.")
+    public ResponseEntity<ApiResponse<WishlistResponse>> removeItem(@PathVariable Long itemId,
+                                                                    @AuthenticationPrincipal UserPrincipal currentUser) {
+        return ResponseEntity.ok(ApiResponse.success("Removed from wishlist", wishlistService.removeItem(itemId, currentUser)));
+    }
+
+    @PostMapping("/merge")
+    @Operation(summary = "Merge the guest wishlist after sign-in", description = "Send the localStorage product ids once after login.")
+    public ResponseEntity<ApiResponse<WishlistResponse>> merge(@Valid @RequestBody MergeWishlistRequest request,
+                                                               @AuthenticationPrincipal UserPrincipal currentUser) {
+        return ResponseEntity.ok(ApiResponse.success("Wishlist merged", wishlistService.merge(request, currentUser)));
+    }
+
+    @DeleteMapping({"", "/clear"})
+    @Operation(summary = "Clear my wishlist", description = "Removes every product.")
+    public ResponseEntity<ApiResponse<Void>> clear(@AuthenticationPrincipal UserPrincipal currentUser) {
+        wishlistService.clearWishlist(currentUser);
+        return ResponseEntity.ok(ApiResponse.success("Wishlist cleared"));
     }
 }

@@ -3,40 +3,27 @@ package com.petshop.backend.dto.request.service;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
+import lombok.Data;
+
 import java.time.LocalTime;
 
+@Data
 public class ScheduleRequest {
+
     @NotBlank(message = "Day of week is required")
+    @Pattern(regexp = "(?i)MONDAY|TUESDAY|WEDNESDAY|THURSDAY|FRIDAY|SATURDAY|SUNDAY", message = "dayOfWeek must be MONDAY..SUNDAY")
     @Schema(example = "MONDAY")
     private String dayOfWeek;
 
     @JsonFormat(pattern = "HH:mm[:ss]")
-    @Schema(type = "string", example = "09:00:00")
+    @Schema(type = "string", example = "09:00")
     private LocalTime startTime;
 
     @JsonFormat(pattern = "HH:mm[:ss]")
-    @Schema(type = "string", example = "18:00:00")
+    @Schema(type = "string", example = "18:00")
     private LocalTime endTime;
 
+    @Schema(description = "false = closed that day", example = "true")
     private Boolean isActive = true;
-
-    public ScheduleRequest() {}
-    public ScheduleRequest(String dayOfWeek, LocalTime startTime, LocalTime endTime, Boolean isActive) {
-        this.dayOfWeek = dayOfWeek;
-        this.startTime = startTime;
-        this.endTime = endTime;
-        this.isActive = isActive != null ? isActive : true;
-    }
-
-    public String getDayOfWeek() { return dayOfWeek; }
-    public void setDayOfWeek(String dayOfWeek) { this.dayOfWeek = dayOfWeek; }
-
-    public LocalTime getStartTime() { return startTime; }
-    public void setStartTime(LocalTime startTime) { this.startTime = startTime; }
-
-    public LocalTime getEndTime() { return endTime; }
-    public void setEndTime(LocalTime endTime) { this.endTime = endTime; }
-
-    public Boolean getIsActive() { return isActive; }
-    public void setIsActive(Boolean isActive) { this.isActive = isActive; }
 }

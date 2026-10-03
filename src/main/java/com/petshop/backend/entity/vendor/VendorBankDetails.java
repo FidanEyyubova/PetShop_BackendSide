@@ -1,10 +1,17 @@
 package com.petshop.backend.entity.vendor;
 
 import jakarta.persistence.*;
+import lombok.*;
+
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "vendor_bank_details")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class VendorBankDetails {
 
     @Id
@@ -15,42 +22,22 @@ public class VendorBankDetails {
     private Long vendorId;
 
     private String iban;
+
+    @Column(name = "bank_name")
     private String bankName;
+
+    @Column(name = "account_holder")
     private String accountHolder;
+
+    /** Tax id (VÖEN), 10 digits. */
+    private String voen;
+
+    @Column(name = "updated_at")
     private LocalDateTime updatedAt;
-
-    public VendorBankDetails() {}
-
-    public VendorBankDetails(Long id, Long vendorId, String iban, String bankName, String accountHolder, LocalDateTime updatedAt) {
-        this.id = id;
-        this.vendorId = vendorId;
-        this.iban = iban;
-        this.bankName = bankName;
-        this.accountHolder = accountHolder;
-        this.updatedAt = updatedAt;
-    }
 
     @PrePersist
     @PreUpdate
     protected void onSave() {
-        this.updatedAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
     }
-
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-
-    public Long getVendorId() { return vendorId; }
-    public void setVendorId(Long vendorId) { this.vendorId = vendorId; }
-
-    public String getIban() { return iban; }
-    public void setIban(String iban) { this.iban = iban; }
-
-    public String getBankName() { return bankName; }
-    public void setBankName(String bankName) { this.bankName = bankName; }
-
-    public String getAccountHolder() { return accountHolder; }
-    public void setAccountHolder(String accountHolder) { this.accountHolder = accountHolder; }
-
-    public LocalDateTime getUpdatedAt() { return updatedAt; }
-    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
 }

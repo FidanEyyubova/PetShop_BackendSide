@@ -1,44 +1,42 @@
 package com.petshop.backend.dto.response.order;
 
 import com.petshop.backend.dto.response.common.CartItemResponse;
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.util.List;
 
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class CartResponse {
     private List<CartItemResponse> items;
+
+    @Schema(description = "Sum of quantities (navbar badge)")
+    private Integer totalItems;
+
+    @Schema(description = "Sum of line subtotals at the price the customer pays")
+    private BigDecimal subtotal;
+
+    @Schema(description = "Savings compared with list prices")
+    private BigDecimal discount;
+
+    @Schema(description = "Shipping; each store ships separately and is free from the threshold")
+    private BigDecimal shippingFee;
+
+    @Schema(description = "subtotal + shippingFee")
+    private BigDecimal total;
+
+    @Schema(description = "Same as total (kept for older clients)")
     private BigDecimal totalAmount;
 
-    public CartResponse() {
-    }
+    private BigDecimal freeShippingThreshold;
 
-    public CartResponse(List<CartItemResponse> items, BigDecimal totalAmount) {
-        this.items = items;
-        this.totalAmount = totalAmount;
-    }
-
-    public static CartResponseBuilder builder() {
-        return new CartResponseBuilder();
-    }
-
-    public List<CartItemResponse> getItems() { return items; }
-    public void setItems(List<CartItemResponse> items) { this.items = items; }
-
-    public BigDecimal getTotalAmount() { return totalAmount; }
-    public void setTotalAmount(BigDecimal totalAmount) { this.totalAmount = totalAmount; }
-
-    public static class CartResponseBuilder {
-        private List<CartItemResponse> items;
-        private BigDecimal totalAmount;
-
-        CartResponseBuilder() {
-        }
-
-        public CartResponseBuilder items(List<CartItemResponse> items) { this.items = items; return this; }
-        public CartResponseBuilder totalAmount(BigDecimal totalAmount) { this.totalAmount = totalAmount; return this; }
-
-        public CartResponse build() {
-            return new CartResponse(items, totalAmount);
-        }
-    }
+    @Schema(description = "false when at least one line is unavailable; checkout would fail")
+    private Boolean checkoutReady;
 }

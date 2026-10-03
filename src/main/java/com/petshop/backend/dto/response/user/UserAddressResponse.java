@@ -12,7 +12,11 @@ import lombok.NoArgsConstructor;
 public class UserAddressResponse {
     private Long id;
     private String title;
-    private String fullAddress;
     private String city;
+    private String district;
+    private String street;
+    private String floor;
+    private String note;
+    private String fullAddress;
     private Boolean isDefault;
 }

@@ -1,157 +1,142 @@
 package com.petshop.backend.service.order.impl;
 
+import com.petshop.backend.dto.request.order.MergeWishlistRequest;
 import com.petshop.backend.dto.response.order.WishlistItemResponse;
 import com.petshop.backend.dto.response.order.WishlistResponse;
+import com.petshop.backend.dto.response.order.WishlistToggleResponse;
+import com.petshop.backend.dto.response.product.ProductCardResponse;
 import com.petshop.backend.entity.order.Wishlist;
 import com.petshop.backend.entity.product.Product;
-import com.petshop.backend.exception.BadRequestException;
 import com.petshop.backend.exception.ResourceNotFoundException;
 import com.petshop.backend.repository.order.WishlistRepository;
 import com.petshop.backend.repository.product.ProductRepository;
+import com.petshop.backend.security.CurrentUser;
 import com.petshop.backend.security.UserPrincipal;
 import com.petshop.backend.service.order.WishlistService;
+import com.petshop.backend.service.product.ProductMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 public class WishlistServiceImpl implements WishlistService {
 
     private final WishlistRepository wishlistRepository;
     private final ProductRepository productRepository;
+    private final ProductMapper productMapper;
 
-    public WishlistServiceImpl(WishlistRepository wishlistRepository, ProductRepository productRepository) {
+    public WishlistServiceImpl(WishlistRepository wishlistRepository, ProductRepository productRepository,
+                               ProductMapper productMapper) {
         this.wishlistRepository = wishlistRepository;
         this.productRepository = productRepository;
+        this.productMapper = productMapper;
     }
 
     @Override
     @Transactional(readOnly = true)
     public WishlistResponse getUserWishlist(UserPrincipal currentUser) {
-        List<Wishlist> wishlists = wishlistRepository.findByUserId(currentUser.getId());
-        return mapToWishlistResponse(wishlists);
+        return build(CurrentUser.require(currentUser).getId());
     }
 
+    /** Idempotent: adding a product twice keeps one row. */
     @Override
-    @Transactional(readOnly = true)
-    public WishlistItemResponse getWishlistItemById(Long itemId, UserPrincipal currentUser) {
-        Wishlist wishlist = wishlistRepository.findByIdAndUserId(itemId, currentUser.getId())
-                .orElseThrow(() -> new ResourceNotFoundException("Wishlist item not found with ID: " + itemId));
-        return mapToItemResponse(wishlist);
+    @Transactional
+    public WishlistResponse addToWishlist(Long productId, UserPrincipal currentUser) {
+        Long userId = CurrentUser.require(currentUser).getId();
+        visibleProduct(productId);
+        if (!wishlistRepository.existsByUserIdAndProductId(userId, productId)) {
+            wishlistRepository.save(Wishlist.builder().userId(userId).productId(productId).build());
+        }
+        return build(userId);
     }
 
     @Override
     @Transactional
-    public WishlistResponse addToWishlist(Long productId, Integer quantity, UserPrincipal currentUser) {
-        Long userId = currentUser.getId();
-        Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new ResourceNotFoundException("Product not found with ID: " + productId));
+    public WishlistResponse removeProduct(Long productId, UserPrincipal currentUser) {
+        Long userId = CurrentUser.require(currentUser).getId();
+        wishlistRepository.deleteByUserIdAndProductId(userId, productId);
+        return build(userId);
+    }
 
-        int qty = (quantity != null && quantity > 0) ? quantity : 1;
-        Optional<Wishlist> existing = wishlistRepository.findByUserIdAndProductId(userId, productId);
+    @Override
+    @Transactional
+    public WishlistResponse removeItem(Long itemId, UserPrincipal currentUser) {
+        Long userId = CurrentUser.require(currentUser).getId();
+        Wishlist item = wishlistRepository.findByIdAndUserId(itemId, userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Wishlist item", "id", itemId));
+        wishlistRepository.delete(item);
+        return build(userId);
+    }
 
-        if (existing.isPresent()) {
-            Wishlist item = existing.get();
-            item.setQuantity(item.getQuantity() + qty);
-            wishlistRepository.save(item);
+    @Override
+    @Transactional
+    public WishlistToggleResponse toggleWishlist(Long productId, UserPrincipal currentUser) {
+        Long userId = CurrentUser.require(currentUser).getId();
+        boolean added;
+        if (wishlistRepository.existsByUserIdAndProductId(userId, productId)) {
+            wishlistRepository.deleteByUserIdAndProductId(userId, productId);
+            added = false;
         } else {
-            Wishlist item = Wishlist.builder()
-                    .userId(userId)
-                    .productId(productId)
-                    .quantity(qty)
-                    .createdAt(LocalDateTime.now())
-                    .build();
-            wishlistRepository.save(item);
+            visibleProduct(productId);
+            wishlistRepository.save(Wishlist.builder().userId(userId).productId(productId).build());
+            added = true;
         }
-
-        return getUserWishlist(currentUser);
+        return new WishlistToggleResponse(productId, added, wishlistRepository.countByUserId(userId));
     }
 
     @Override
     @Transactional
-    public WishlistResponse updateWishlistItemQuantity(Long itemId, Integer quantity, UserPrincipal currentUser) {
-        if (quantity == null || quantity <= 0) {
-            throw new BadRequestException("Quantity must be at least 1");
+    public WishlistResponse merge(MergeWishlistRequest request, UserPrincipal currentUser) {
+        Long userId = CurrentUser.require(currentUser).getId();
+        Set<Long> ids = new LinkedHashSet<>(request.getProductIds());
+        Set<Long> visible = productRepository.findAllById(ids).stream()
+                .filter(Product::isPubliclyVisible).map(Product::getId).collect(Collectors.toSet());
+        for (Long id : ids) {
+            if (visible.contains(id) && !wishlistRepository.existsByUserIdAndProductId(userId, id)) {
+                wishlistRepository.save(Wishlist.builder().userId(userId).productId(id).build());
+            }
         }
-
-        Wishlist wishlist = wishlistRepository.findByIdAndUserId(itemId, currentUser.getId())
-                .orElseThrow(() -> new ResourceNotFoundException("Wishlist item not found with ID: " + itemId));
-
-        wishlist.setQuantity(quantity);
-        wishlistRepository.save(wishlist);
-        return getUserWishlist(currentUser);
-    }
-
-    @Override
-    @Transactional
-    public WishlistResponse removeFromWishlist(Long itemId, UserPrincipal currentUser) {
-        Wishlist wishlist = wishlistRepository.findByIdAndUserId(itemId, currentUser.getId())
-                .orElseThrow(() -> new ResourceNotFoundException("Wishlist item not found with ID: " + itemId));
-
-        wishlistRepository.delete(wishlist);
-        return getUserWishlist(currentUser);
+        return build(userId);
     }
 
     @Override
     @Transactional
     public void clearWishlist(UserPrincipal currentUser) {
-        wishlistRepository.deleteByUserId(currentUser.getId());
+        wishlistRepository.deleteByUserId(CurrentUser.require(currentUser).getId());
     }
 
-    @Override
-    @Transactional
-    public boolean toggleWishlist(Long productId, UserPrincipal currentUser) {
-        Long userId = currentUser.getId();
-        if (!productRepository.existsById(productId)) {
-            throw new ResourceNotFoundException("Product not found with ID: " + productId);
-        }
-
-        if (wishlistRepository.existsByUserIdAndProductId(userId, productId)) {
-            wishlistRepository.deleteByUserIdAndProductId(userId, productId);
-            return false;
-        } else {
-            Wishlist wishlist = Wishlist.builder()
-                    .userId(userId)
-                    .productId(productId)
-                    .quantity(1)
-                    .createdAt(LocalDateTime.now())
-                    .build();
-            wishlistRepository.save(wishlist);
-            return true;
-        }
+    private Product visibleProduct(Long productId) {
+        return productRepository.findById(productId)
+                .filter(Product::isPubliclyVisible)
+                .orElseThrow(() -> new ResourceNotFoundException("Product", "id", productId));
     }
 
-    private WishlistResponse mapToWishlistResponse(List<Wishlist> wishlists) {
+    /** Deleted or hidden products are left out of the response. */
+    private WishlistResponse build(Long userId) {
+        List<Wishlist> rows = wishlistRepository.findByUserIdOrderByCreatedAtDesc(userId);
+        Map<Long, Product> products = productRepository.findAllById(rows.stream().map(Wishlist::getProductId).toList())
+                .stream().filter(Product::isPubliclyVisible)
+                .collect(Collectors.toMap(Product::getId, Function.identity()));
+        ProductMapper.Context ctx = productMapper.context(products.values());
         List<WishlistItemResponse> items = new ArrayList<>();
-        for (Wishlist w : wishlists) {
-            WishlistItemResponse itemResp = mapToItemResponse(w);
-            if (itemResp != null) {
-                items.add(itemResp);
-            }
+        for (Wishlist w : rows) {
+            Product p = products.get(w.getProductId());
+            if (p == null) continue;
+            ProductCardResponse card = productMapper.toCard(p, ctx);
+            items.add(WishlistItemResponse.builder()
+                    .id(w.getId())
+                    .productId(p.getId())
+                    .addedAt(w.getCreatedAt())
+                    .product(card)
+                    .build());
         }
         return WishlistResponse.builder()
                 .items(items)
+                .productIds(items.stream().map(WishlistItemResponse::getProductId).toList())
                 .totalItems(items.size())
-                .build();
-    }
-
-    private WishlistItemResponse mapToItemResponse(Wishlist wishlist) {
-        Product p = productRepository.findById(wishlist.getProductId()).orElse(null);
-        if (p == null) return null;
-
-        return WishlistItemResponse.builder()
-                .id(wishlist.getId())
-                .productId(p.getId())
-                .productTitle(p.getTitle())
-                .productImage(p.getImages())
-                .price(p.getPrice())
-                .discountPrice(p.getDiscountPrice())
-                .quantity(wishlist.getQuantity() != null ? wishlist.getQuantity() : 1)
-                .createdAt(wishlist.getCreatedAt())
                 .build();
     }
 }

@@ -1,31 +1,29 @@
 package com.petshop.backend.dto.request.user;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
+import com.petshop.backend.common.ValidationPatterns;
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import lombok.Data;
 
+/** Partial update: null fields are left unchanged. Email cannot be changed here. */
 @Data
 public class UpdateProfileRequest {
+
+    @Size(min = 2, max = 100, message = "Full name must be 2-100 characters")
     private String fullName;
+
+    @JsonAlias("phoneNum")
+    @Pattern(regexp = ValidationPatterns.PHONE, message = ValidationPatterns.PHONE_MESSAGE)
     private String phone;
+
+    @JsonAlias("avatar")
+    @Pattern(regexp = ValidationPatterns.IMAGE_URL, message = ValidationPatterns.IMAGE_URL_MESSAGE)
+    @Size(max = 1000)
+    @Schema(description = "URL from POST /api/v1/files; also accepted as `avatar`")
     private String avatarUrl;
+
+    @Size(max = 255)
     private String cityAddress;
-
-    public UpdateProfileRequest() {}
-    public UpdateProfileRequest(String fullName, String phone, String avatarUrl, String cityAddress) {
-        this.fullName = fullName;
-        this.phone = phone;
-        this.avatarUrl = avatarUrl;
-        this.cityAddress = cityAddress;
-    }
-
-    public String getFullName() { return fullName; }
-    public void setFullName(String fullName) { this.fullName = fullName; }
-
-    public String getPhone() { return phone; }
-    public void setPhone(String phone) { this.phone = phone; }
-
-    public String getAvatarUrl() { return avatarUrl; }
-    public void setAvatarUrl(String avatarUrl) { this.avatarUrl = avatarUrl; }
-
-    public String getCityAddress() { return cityAddress; }
-    public void setCityAddress(String cityAddress) { this.cityAddress = cityAddress; }
 }

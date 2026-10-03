@@ -2,7 +2,6 @@ package com.petshop.backend.security;
 
 import com.petshop.backend.entity.user.User;
 import com.petshop.backend.repository.user.UserRepository;
-import org.springframework.lang.NonNull;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -14,23 +13,24 @@ public class CustomUserDetailsService implements UserDetailsService {
 
     private final UserRepository userRepository;
 
+    public CustomUserDetailsService(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
+
+    /** Emails are matched case-insensitively; deleted accounts are not found. */
     @Override
     @Transactional(readOnly = true)
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new UsernameNotFoundException("İstifadəçi tapılmadı: " + email));
-
+        User user = userRepository.findByEmailIgnoreCaseAndDeletedAtIsNull(email == null ? "" : email.trim())
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
         return UserPrincipal.build(user);
     }
 
     @Transactional(readOnly = true)
-    public UserDetails loadUserById(@NonNull Long id) {
+    public UserPrincipal loadUserById(Long id) {
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new UsernameNotFoundException("İstifadəçi tapılmadı ID: " + id));
-
+                .filter(u -> !u.isDeleted())
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
         return UserPrincipal.build(user);
-    }
-    public CustomUserDetailsService(UserRepository userRepository) {
-        this.userRepository = userRepository;
     }
 }

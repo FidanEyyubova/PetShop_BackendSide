@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/coupons")
-@Tag(name = "Coupon Controller", description = "Promocode and coupon validation & discount calculation endpoints")
+@Tag(name = "Coupons", description = "Coupon validation (preview); the discount is recomputed at checkout")
 public class CouponController {
 
     private final CouponService couponService;
@@ -22,7 +22,7 @@ public class CouponController {
     }
 
     @PostMapping("/apply")
-    @Operation(summary = "Validate promo code and calculate discount amount")
+    @Operation(summary = "Preview a coupon", description = "Checks the code against a cart total. Unknown or invalid codes return 400 with code COUPON_*.")
     public ResponseEntity<ApiResponse<CouponResponse>> applyCoupon(@Valid @RequestBody ApplyCouponRequest request) {
         CouponResponse response = couponService.applyCoupon(request);
         return ResponseEntity.ok(ApiResponse.success("Promocode applied successfully", response));

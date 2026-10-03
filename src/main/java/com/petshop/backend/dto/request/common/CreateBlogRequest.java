@@ -1,38 +1,45 @@
 package com.petshop.backend.dto.request.common;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
+import com.petshop.backend.common.ValidationPatterns;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
+import lombok.Data;
 
+import java.util.ArrayList;
+import java.util.List;
+
+@Data
 public class CreateBlogRequest {
-    @NotBlank(message = "MÉ™qalÉ™ baÅŸlÄ±ÄŸÄ± boÅŸ ola bilmÉ™z")
+
+    @NotBlank(message = "Title is required")
+    @Size(max = 255)
     private String title;
 
+    @Size(max = 1000)
     private String excerpt;
 
-    @NotBlank(message = "MÉ™qalÉ™ mÉ™tni mÃ¼tlÉ™qdir")
+    @NotBlank(message = "Content is required")
+    @Size(max = 100_000)
+    @Schema(description = "Article body (plain text or Markdown; rendered as text by the frontend)")
     private String content;
 
+    @JsonAlias("image")
+    @Pattern(regexp = ValidationPatterns.IMAGE_URL, message = ValidationPatterns.IMAGE_URL_MESSAGE)
+    @Size(max = 1000)
     private String coverImage;
-    private String tags;
+
+    @Size(max = 15)
+    private List<@Size(max = 50) String> tags = new ArrayList<>();
+
+    @Size(max = 50)
+    @Schema(description = "Optional; computed from the content when empty", example = "5 min read")
     private String readTime;
 
-    public CreateBlogRequest() {
-    }
+    @Schema(description = "Blog category id; or send categorySlug")
+    private Long categoryId;
 
-    public String getTitle() { return title; }
-    public void setTitle(String title) { this.title = title; }
-
-    public String getExcerpt() { return excerpt; }
-    public void setExcerpt(String excerpt) { this.excerpt = excerpt; }
-
-    public String getContent() { return content; }
-    public void setContent(String content) { this.content = content; }
-
-    public String getCoverImage() { return coverImage; }
-    public void setCoverImage(String coverImage) { this.coverImage = coverImage; }
-
-    public String getTags() { return tags; }
-    public void setTags(String tags) { this.tags = tags; }
-
-    public String getReadTime() { return readTime; }
-    public void setReadTime(String readTime) { this.readTime = readTime; }
+    private String categorySlug;
 }

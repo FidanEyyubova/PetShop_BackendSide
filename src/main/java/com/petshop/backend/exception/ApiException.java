@@ -1,0 +1,16 @@
+package com.petshop.backend.exception;
+
+/** Base class for exceptions that carry a machine-readable error code. */
+public abstract class ApiException extends RuntimeException {
+
+    private final String code;
+
+    protected ApiException(String code, String message) {
+        super(message);
+        this.code = code;
+    }
+
+    public String getCode() {
+        return code;
+    }
+}

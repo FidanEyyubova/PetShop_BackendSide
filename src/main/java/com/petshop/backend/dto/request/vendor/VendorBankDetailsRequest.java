@@ -1,30 +1,30 @@
 package com.petshop.backend.dto.request.vendor;
 
+import com.petshop.backend.common.ValidationPatterns;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
+import lombok.Data;
 
+@Data
 public class VendorBankDetailsRequest {
+
     @NotBlank(message = "IBAN is required")
+    @Pattern(regexp = ValidationPatterns.IBAN, message = ValidationPatterns.IBAN_MESSAGE)
+    @Schema(example = "AZ21NABZ00000000137010001944")
     private String iban;
 
     @NotBlank(message = "Bank name is required")
+    @Size(max = 150)
     private String bankName;
 
-    @NotBlank(message = "Account holder name is required")
+    @Size(max = 150)
+    @Schema(description = "Defaults to the account's full name")
     private String accountHolder;
 
-    public VendorBankDetailsRequest() {}
-    public VendorBankDetailsRequest(String iban, String bankName, String accountHolder) {
-        this.iban = iban;
-        this.bankName = bankName;
-        this.accountHolder = accountHolder;
-    }
-
-    public String getIban() { return iban; }
-    public void setIban(String iban) { this.iban = iban; }
-
-    public String getBankName() { return bankName; }
-    public void setBankName(String bankName) { this.bankName = bankName; }
-
-    public String getAccountHolder() { return accountHolder; }
-    public void setAccountHolder(String accountHolder) { this.accountHolder = accountHolder; }
+    @NotBlank(message = "VÖEN is required")
+    @Pattern(regexp = ValidationPatterns.VOEN, message = ValidationPatterns.VOEN_MESSAGE)
+    @Schema(example = "1234567890")
+    private String voen;
 }

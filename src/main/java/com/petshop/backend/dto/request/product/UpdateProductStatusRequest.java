@@ -1,18 +1,15 @@
 package com.petshop.backend.dto.request.product;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
+import lombok.Data;
 
+@Data
 public class UpdateProductStatusRequest {
-    @NotBlank(message = "Status boÅŸ ola bilmÉ™z (active/hidden)")
+
+    @NotBlank(message = "Status is required")
+    @Pattern(regexp = "(?i)active|hidden", message = "Status must be 'active' or 'hidden'")
+    @Schema(allowableValues = {"active", "hidden"}, example = "hidden")
     private String status;
-
-    public UpdateProductStatusRequest() {
-    }
-
-    public UpdateProductStatusRequest(String status) {
-        this.status = status;
-    }
-
-    public String getStatus() { return status; }
-    public void setStatus(String status) { this.status = status; }
 }

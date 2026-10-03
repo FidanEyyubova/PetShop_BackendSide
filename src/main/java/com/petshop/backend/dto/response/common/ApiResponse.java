@@ -1,9 +1,23 @@
 package com.petshop.backend.dto.response.common;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import io.swagger.v3.oas.annotations.media.Schema;
+
+@Schema(description = "Standard envelope for every API response")
 public class ApiResponse<T> {
+
+    @Schema(description = "true when the request succeeded", example = "true")
     private Boolean success;
+
+    @Schema(description = "Human-readable message", example = "Products fetched successfully")
     private String message;
+
+    @Schema(description = "Payload; on validation errors a map of field -> message")
     private T data;
+
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    @Schema(description = "Machine-readable error code, present only on errors", example = "OUT_OF_STOCK")
+    private String code;
 
     public ApiResponse() {
     }
@@ -19,6 +33,13 @@ public class ApiResponse<T> {
         this.data = data;
     }
 
+    public ApiResponse(Boolean success, String message, T data, String code) {
+        this.success = success;
+        this.message = message;
+        this.data = data;
+        this.code = code;
+    }
+
     public static <T> ApiResponse<T> success(String message, T data) {
         return new ApiResponse<>(true, message, data);
     }
@@ -29,6 +50,10 @@ public class ApiResponse<T> {
 
     public static <T> ApiResponse<T> error(String message) {
         return new ApiResponse<>(false, message, null);
+    }
+
+    public static <T> ApiResponse<T> error(String code, String message, T data) {
+        return new ApiResponse<>(false, message, data, code);
     }
 
     public static <T> ApiResponseBuilder<T> builder() {
@@ -44,10 +69,14 @@ public class ApiResponse<T> {
     public T getData() { return data; }
     public void setData(T data) { this.data = data; }
 
+    public String getCode() { return code; }
+    public void setCode(String code) { this.code = code; }
+
     public static class ApiResponseBuilder<T> {
         private Boolean success;
         private String message;
         private T data;
+        private String code;
 
         ApiResponseBuilder() {
         }
@@ -55,9 +84,10 @@ public class ApiResponse<T> {
         public ApiResponseBuilder<T> success(Boolean success) { this.success = success; return this; }
         public ApiResponseBuilder<T> message(String message) { this.message = message; return this; }
         public ApiResponseBuilder<T> data(T data) { this.data = data; return this; }
+        public ApiResponseBuilder<T> code(String code) { this.code = code; return this; }
 
         public ApiResponse<T> build() {
-            return new ApiResponse<T>(success, message, data);
+            return new ApiResponse<T>(success, message, data, code);
         }
     }
 }
