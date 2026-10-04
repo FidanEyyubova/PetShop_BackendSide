@@ -111,7 +111,8 @@ public class ProviderController {
 
     @PostMapping("/services")
     @PreAuthorize(PROVIDER)
-    @Operation(summary = "Create a service", description = "Price-list line; priceMax must be greater than or equal to priceMin.")
+    @Operation(summary = "Create a service", description = "Price-list line; priceMax must be greater than or equal to priceMin. "
+            + "While the account is PENDING_APPROVAL the service is saved hidden (active=false).")
     public ResponseEntity<ApiResponse<ServiceResponse>> createService(@Valid @RequestBody CreateServiceRequest request,
                                                                       @AuthenticationPrincipal UserPrincipal currentUser) {
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -120,7 +121,7 @@ public class ProviderController {
 
     @PutMapping("/services/{id}")
     @PreAuthorize(PROVIDER)
-    @Operation(summary = "Update a service", description = "Replaces the line's fields.")
+    @Operation(summary = "Update a service", description = "Replaces the line's fields. Stays hidden while the account is PENDING_APPROVAL.")
     public ResponseEntity<ApiResponse<ServiceResponse>> updateService(@PathVariable Long id,
                                                                       @Valid @RequestBody CreateServiceRequest request,
                                                                       @AuthenticationPrincipal UserPrincipal currentUser) {
@@ -129,7 +130,8 @@ public class ProviderController {
 
     @PatchMapping("/services/{id}/status")
     @PreAuthorize(PROVIDER)
-    @Operation(summary = "Activate or deactivate a service", description = "Body: {\"active\": false}. Inactive services are hidden publicly.")
+    @Operation(summary = "Activate or deactivate a service", description = "Body: {\"active\": false}. Inactive services are hidden publicly. "
+            + "Activating requires an approved account (403 ACCOUNT_PENDING_APPROVAL otherwise).")
     public ResponseEntity<ApiResponse<ServiceResponse>> serviceStatus(@PathVariable Long id,
                                                                       @RequestBody Map<String, Boolean> body,
                                                                       @AuthenticationPrincipal UserPrincipal currentUser) {

@@ -1,0 +1,24 @@
+# Exposes the API outside the cluster through an NGINX ingress controller.
+# Local test: add "127.0.0.1 api.petshop.local" to the hosts file, then open http://api.petshop.local/swagger-ui/index.html
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: petshop-backend
+  namespace: petshop
+  labels:
+    app.kubernetes.io/part-of: petshop
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: 6m   # image uploads up to 5 MB
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: api.petshop.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: petshop-backend
+                port:
+                  name: http

@@ -33,7 +33,7 @@ public class SecurityConfig {
 
     private static final String[] PUBLIC_ANY_METHOD = {
             "/", "/docs", "/docs/**", "/swagger", "/swagger/**", "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**", "/v3/api-docs.yaml", "/v3/api-docs.yaml/**",
-            "/actuator/health", "/error",
+            "/actuator/health", "/actuator/health/**", "/error",
             "/api/v1/auth/login",
             "/api/v1/auth/google",
             "/api/v1/auth/register",

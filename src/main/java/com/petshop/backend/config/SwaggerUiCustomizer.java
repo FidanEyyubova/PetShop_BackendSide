@@ -57,11 +57,11 @@ public class SwaggerUiCustomizer {
             },
             """;
 
-    /** Shows inline code in descriptions (endpoints, field names) in red instead of Swagger's default purple. */
+    /** Shows inline code in descriptions (endpoints, field names) and `petshop-red` labels in red instead of Swagger's default purple. */
     private static final String STYLE = """
             (function () {
                 var style = document.createElement('style');
-                style.textContent = '.swagger-ui .markdown code, .swagger-ui .renderedMarkdown code { color: #d32f2f !important; }';
+                style.textContent = '.swagger-ui .markdown code, .swagger-ui .renderedMarkdown code, .swagger-ui .petshop-red { color: #d32f2f !important; }';
                 document.head.appendChild(style);
             })();
             """;

@@ -12,6 +12,7 @@ import com.petshop.backend.dto.response.user.UserResponse;
 import com.petshop.backend.dto.response.vendor.VendorPayoutResponse;
 import com.petshop.backend.entity.product.Product;
 import com.petshop.backend.entity.product.Store;
+import com.petshop.backend.entity.service.PetService;
 import com.petshop.backend.entity.user.User;
 import com.petshop.backend.entity.vendor.VendorPayout;
 import com.petshop.backend.exception.BadRequestException;
@@ -19,6 +20,7 @@ import com.petshop.backend.exception.ConflictException;
 import com.petshop.backend.exception.ResourceNotFoundException;
 import com.petshop.backend.repository.product.ProductRepository;
 import com.petshop.backend.repository.product.StoreRepository;
+import com.petshop.backend.repository.service.PetServiceRepository;
 import com.petshop.backend.repository.user.UserRepository;
 import com.petshop.backend.repository.vendor.VendorPayoutRepository;
 import com.petshop.backend.service.notification.EmailService;
@@ -51,11 +53,13 @@ public class AdminManagementService {
     private final EmailService emailService;
     private final UserMapper userMapper;
     private final StoreService storeService;
+    private final PetServiceRepository serviceRepository;
 
     public AdminManagementService(UserRepository userRepository, ProductRepository productRepository,
                                   StoreRepository storeRepository, VendorPayoutRepository payoutRepository,
                                   RefreshTokenService refreshTokenService, EmailService emailService,
-                                  UserMapper userMapper, StoreService storeService) {
+                                  UserMapper userMapper, StoreService storeService,
+                                  PetServiceRepository serviceRepository) {
         this.userRepository = userRepository;
         this.productRepository = productRepository;
         this.storeRepository = storeRepository;
@@ -64,6 +68,7 @@ public class AdminManagementService {
         this.emailService = emailService;
         this.userMapper = userMapper;
         this.storeService = storeService;
+        this.serviceRepository = serviceRepository;
     }
 
     @Transactional(readOnly = true)
@@ -86,8 +91,8 @@ public class AdminManagementService {
     }
 
     /**
-     * Approves / rejects sellers and suspends accounts. Suspension revokes all sessions and hides a vendor's products;
-     * re-activation does not republish them automatically.
+     * Approves / rejects sellers (vendors and service providers) and suspends accounts. Rejection or suspension revokes
+     * all sessions and hides a vendor's products and a provider's services; re-activation does not republish them.
      */
     @Transactional
     public UserResponse updateUserStatus(Long userId, UpdateUserStatusRequest request) {
@@ -108,11 +113,19 @@ public class AdminManagementService {
                     cb.equal(root.get("vendorId"), user.getId()), cb.isTrue(root.get("isActive"))));
             products.forEach(p -> p.setIsActive(false));
             productRepository.saveAll(products);
+            List<PetService> services = serviceRepository.findByProviderIdAndActiveTrueOrderByIdAsc(user.getId());
+            services.forEach(s -> s.setActive(false));
+            serviceRepository.saveAll(services);
         }
         if (previous != next) {
+            boolean provider = Roles.ROLE_SERVICE_PROVIDER.equals(Roles.normalize(user.getRole()));
             String body = switch (next) {
-                case ACTIVE -> "Your PetShop account has been approved. You can now publish on the platform.";
-                case REJECTED -> "Your PetShop seller application was not approved.";
+                case ACTIVE -> provider
+                        ? "Your PetShop service center has been approved. It is now listed publicly and you can publish your services."
+                        : "Your PetShop account has been approved. You can now publish on the platform.";
+                case REJECTED -> provider
+                        ? "Your PetShop service provider application was not approved."
+                        : "Your PetShop seller application was not approved.";
                 case SUSPENDED -> "Your PetShop account has been suspended.";
                 case PENDING_APPROVAL -> "Your PetShop account is waiting for review.";
             };

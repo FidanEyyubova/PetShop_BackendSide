@@ -4,7 +4,6 @@ import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.PathItem;
-import io.swagger.v3.oas.models.info.Contact;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
@@ -78,8 +77,27 @@ public class OpenApiConfig {
     @Bean
     public OpenAPI petShopOpenAPI() {
         String description = """
-                **PetShop** is an online marketplace for pet owners. Customers buy pet products from independent stores
-                and find grooming, veterinary and training centers. This API is the backend of the whole platform.
+                ## About PetShop
+
+                **PetShop** is an online marketplace for pet owners. In one place, customers can buy food, toys and
+                accessories for their pets from independent stores, and find trusted grooming, veterinary and training
+                centers nearby.
+
+                The platform brings four kinds of users together:
+
+                * **Customers** browse the catalogue, compare products by pet type, brand and price, pay at checkout
+                  and follow every order until it is delivered.
+                * **Vendors** open their own store, manage products and stock, process orders and withdraw their earnings.
+                * **Service providers** present their center with a price list, team, weekly schedule and photo gallery.
+                * **Administrators** approve new sellers and centers, moderate reviews and manage the site content.
+
+                PetShop is a full-stack web application: a React website on top of this API. The API stores the data,
+                enforces the business rules (stock, prices, order statuses, approvals, permissions) and powers every
+                page of the website.
+
+                <strong class="petshop-red">Live website:</strong> [pet-shop-frontend-side.vercel.app](https://pet-shop-frontend-side.vercel.app)
+
+                **Built with:** Java 17, Spring Boot 3, Spring Security (JWT), PostgreSQL, Liquibase, OpenAPI / Swagger.
 
                 ## What the API covers
 
@@ -119,21 +137,7 @@ public class OpenApiConfig {
                 2. Buyer adds products to the cart → checks out (stock is reserved, one order per store).
                 3. Vendor moves the order **pending → processing → shipping → delivered**.
                 4. Buyer reviews the product → its rating updates.
-
-                ## Response format
-
-                Every response uses the same envelope. Errors also carry a machine-readable `code`.
-
-                ```json
-                {
-                  "success": true,
-                  "message": "Products fetched",
-                  "data": { }
-                }
-                ```
-
-                Lists are paged: `content`, `pageNumber`, `pageSize`, `totalElements`, `totalPages`, `last`
-                (`page` starts at 0, `size` is at most 100).
+                5. Service provider registers → admin approves → the center is listed and services can be published.
 
                 ## Status codes
 
@@ -146,21 +150,13 @@ public class OpenApiConfig {
                 | `404` | Resource not found |
                 | `409` | Conflict: duplicate, not enough stock, invalid status change |
                 | `429` | Too many requests (login, forms) |
-
-                ## Conventions
-
-                * Money is in AZN (₼) with two decimals; dates are ISO-8601.
-                * Images: upload with `POST /api/v1/files`, then send the returned `url`.
-                * Inside every section, endpoints follow **GET → POST → PUT → PATCH**, and **DELETE** endpoints are listed last.
                 """;
         return new OpenAPI()
                 .servers(List.of(new io.swagger.v3.oas.models.servers.Server().url("/").description("Current server")))
                 .info(new Info()
                         .title("PetShop API")
                         .version("2.0")
-                        .description(description)
-                        .contact(new Contact().name("PetShop backend").url("https://pet-shop-frontend-side.vercel.app")))
-                .components(new Components().addSecuritySchemes(BEARER, new SecurityScheme()
+                        .description(description))                .components(new Components().addSecuritySchemes(BEARER, new SecurityScheme()
                         .name(BEARER)
                         .type(SecurityScheme.Type.HTTP)
                         .scheme("bearer")

@@ -105,6 +105,12 @@ management:
   endpoint:
     health:
       show-details: never
+      probes:
+        enabled: true
+  health:
+    # Optional SMTP must not mark the application as down (and probes must not open SMTP connections).
+    mail:
+      enabled: false
 
 springdoc:
   swagger-ui:
@@ -113,7 +119,7 @@ springdoc:
     docExpansion: none
     displayRequestDuration: true
     persistAuthorization: true
-    filter: true
+    filter: false
     urlsPrimaryName: All endpoints
   api-docs:
     path: /v3/api-docs

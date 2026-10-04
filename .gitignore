@@ -34,3 +34,7 @@ build/
 
 # Local image uploads (STORAGE_TYPE=local)
 uploads/
+
+# Local secrets and tools
+.env
+ngrok.exe

@@ -1,0 +1,87 @@
+# PostgreSQL with persistent storage. Only reachable inside the cluster (ClusterIP service).
+apiVersion: v1
+kind: Service
+metadata:
+  name: petshop-postgres
+  namespace: petshop
+  labels:
+    app.kubernetes.io/name: petshop-postgres
+    app.kubernetes.io/part-of: petshop
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: petshop-postgres
+  ports:
+    - name: postgres
+      port: 5432
+      targetPort: 5432
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: petshop-postgres
+  namespace: petshop
+  labels:
+    app.kubernetes.io/name: petshop-postgres
+    app.kubernetes.io/part-of: petshop
+spec:
+  serviceName: petshop-postgres
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: petshop-postgres
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: petshop-postgres
+        app.kubernetes.io/part-of: petshop
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:16-alpine
+          ports:
+            - name: postgres
+              containerPort: 5432
+          env:
+            - name: POSTGRES_DB
+              value: petshop_db
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: petshop-secrets
+                  key: POSTGRES_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: petshop-secrets
+                  key: POSTGRES_PASSWORD
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+          readinessProbe:
+            exec:
+              command: ["sh", "-c", "pg_isready -U \"$POSTGRES_USER\" -d petshop_db"]
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            exec:
+              command: ["sh", "-c", "pg_isready -U \"$POSTGRES_USER\" -d petshop_db"]
+            initialDelaySeconds: 30
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 2Gi

@@ -1,0 +1,12 @@
+target/
+uploads/
+.git/
+.idea/
+.vscode/
+*.iml
+k8s/
+docs/
+*.md
+ngrok.exe
+package-lock.json
+.env

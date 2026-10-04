@@ -1,0 +1,22 @@
+# Non-secret application settings, injected into the backend as environment variables.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: petshop-config
+  namespace: petshop
+  labels:
+    app.kubernetes.io/part-of: petshop
+data:
+  PORT: "8080"
+  SPRING_DATASOURCE_URL: jdbc:postgresql://petshop-postgres:5432/petshop_db
+  CORS_ALLOWED_ORIGINS: https://pet-shop-frontend-side.vercel.app,http://localhost:5173
+  FRONTEND_URL: https://pet-shop-frontend-side.vercel.app
+  STORAGE_TYPE: local
+  STORAGE_LOCAL_DIR: /app/uploads
+  SHIPPING_FREE_THRESHOLD: "50.00"
+  SHIPPING_FEE: "5.00"
+  COMMISSION_RATE: "0.10"
+  # Set to smtp.gmail.com (and fill MAIL_* in the secret) to send emails; empty = emails are only logged.
+  MAIL_HOST: ""
+  MAIL_PORT: "587"
+  JAVA_OPTS: -XX:MaxRAMPercentage=75

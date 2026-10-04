@@ -1,0 +1,152 @@
+# PetShop backend: Deployment, uploads volume and Service.
+# Build the image first:  docker build -t petshop-backend:latest .
+# Liquibase applies the database migrations automatically when the pod starts.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: petshop-uploads
+  namespace: petshop
+  labels:
+    app.kubernetes.io/part-of: petshop
+spec:
+  accessModes: ["ReadWriteOnce"]
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: petshop-backend
+  namespace: petshop
+  labels:
+    app.kubernetes.io/name: petshop-backend
+    app.kubernetes.io/part-of: petshop
+spec:
+  # One replica while images are stored on the local volume (STORAGE_TYPE=local).
+  # With STORAGE_TYPE=s3 the backend is stateless and can be scaled up.
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: petshop-backend
+  strategy:
+    type: Recreate   # the uploads volume is ReadWriteOnce
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: petshop-backend
+        app.kubernetes.io/part-of: petshop
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        fsGroup: 10001   # lets the app write to the uploads volume
+      containers:
+        - name: backend
+          image: petshop-backend:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8080
+          envFrom:
+            - configMapRef:
+                name: petshop-config
+          env:
+            - name: SPRING_DATASOURCE_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: petshop-secrets
+                  key: POSTGRES_USER
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: petshop-secrets
+                  key: POSTGRES_PASSWORD
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: petshop-secrets
+                  key: JWT_SECRET
+            - name: ADMIN_EMAIL
+              valueFrom:
+                secretKeyRef:
+                  name: petshop-secrets
+                  key: ADMIN_EMAIL
+            - name: ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: petshop-secrets
+                  key: ADMIN_PASSWORD
+            - name: MAIL_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: petshop-secrets
+                  key: MAIL_USERNAME
+            - name: MAIL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: petshop-secrets
+                  key: MAIL_PASSWORD
+            - name: MAIL_FROM
+              valueFrom:
+                secretKeyRef:
+                  name: petshop-secrets
+                  key: MAIL_FROM
+            - name: MAIL_NOTIFY_TO
+              valueFrom:
+                secretKeyRef:
+                  name: petshop-secrets
+                  key: MAIL_NOTIFY_TO
+            - name: GOOGLE_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: petshop-secrets
+                  key: GOOGLE_CLIENT_ID
+          startupProbe:          # gives Liquibase and Spring time to start
+            httpGet:
+              path: /actuator/health/liveness
+              port: http
+            periodSeconds: 5
+            failureThreshold: 36
+          readinessProbe:        # receives traffic only when the database is reachable
+            httpGet:
+              path: /actuator/health/readiness
+              port: http
+            periodSeconds: 10
+          livenessProbe:         # restarted if the application hangs
+            httpGet:
+              path: /actuator/health/liveness
+              port: http
+            periodSeconds: 20
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: "1"
+              memory: 1Gi
+          volumeMounts:
+            - name: uploads
+              mountPath: /app/uploads
+      volumes:
+        - name: uploads
+          persistentVolumeClaim:
+            claimName: petshop-uploads
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: petshop-backend
+  namespace: petshop
+  labels:
+    app.kubernetes.io/name: petshop-backend
+    app.kubernetes.io/part-of: petshop
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: petshop-backend
+  ports:
+    - name: http
+      port: 80
+      targetPort: http

@@ -1,6 +1,7 @@
 package com.petshop.backend.service.service.impl;
 
 import com.petshop.backend.common.ServiceType;
+import com.petshop.backend.common.UserStatus;
 import com.petshop.backend.dto.request.service.*;
 import com.petshop.backend.dto.response.service.*;
 import com.petshop.backend.entity.service.*;
@@ -161,6 +162,8 @@ public class ProviderManagementServiceImpl implements ProviderManagementService 
     public ServiceResponse createService(CreateServiceRequest r, UserPrincipal currentUser) {
         PetService s = PetService.builder().providerId(providerId(currentUser)).build();
         applyService(s, r);
+        // Services of providers waiting for approval are saved hidden.
+        if (!isApproved(currentUser)) s.setActive(false);
         return support.toService(serviceRepository.save(s));
     }
 
@@ -169,6 +172,7 @@ public class ProviderManagementServiceImpl implements ProviderManagementService 
     public ServiceResponse updateService(Long id, CreateServiceRequest r, UserPrincipal currentUser) {
         PetService s = ownedService(id, currentUser);
         applyService(s, r);
+        if (!isApproved(currentUser)) s.setActive(false);
         return support.toService(serviceRepository.save(s));
     }
 
@@ -176,6 +180,10 @@ public class ProviderManagementServiceImpl implements ProviderManagementService 
     @Transactional
     public ServiceResponse setServiceActive(Long id, boolean active, UserPrincipal currentUser) {
         PetService s = ownedService(id, currentUser);
+        if (active && !isApproved(currentUser)) {
+            throw new AccessDeniedCustomException("ACCOUNT_PENDING_APPROVAL",
+                    "Services can be published after your account is approved");
+        }
         s.setActive(active);
         return support.toService(serviceRepository.save(s));
     }
@@ -224,6 +232,7 @@ public class ProviderManagementServiceImpl implements ProviderManagementService 
     @Override
     @Transactional(readOnly = true)
     public List<ProviderGalleryResponse> getProviderGallery(Long providerId) {
+        requirePublicProvider(providerId);
         return galleryRepository.findByProviderIdOrderByCreatedAtDesc(providerId).stream().map(support::toGallery).toList();
     }
 
@@ -251,6 +260,7 @@ public class ProviderManagementServiceImpl implements ProviderManagementService 
     @Override
     @Transactional
     public void recordEvent(Long providerId, ProviderEventRequest request) {
+        requirePublicProvider(providerId);
         int updated = switch (request.getType().toUpperCase(Locale.ROOT)) {
             case "PAGE_VIEW" -> profileRepository.incrementPageViews(providerId);
             case "CONTACT_CLICK" -> profileRepository.incrementContactClicks(providerId);
@@ -261,6 +271,17 @@ public class ProviderManagementServiceImpl implements ProviderManagementService 
     }
 
     // ---- helpers -------------------------------------------------------------------------------
+
+    private static boolean isApproved(UserPrincipal currentUser) {
+        return currentUser.isAdmin() || currentUser.getStatus() == UserStatus.ACTIVE;
+    }
+
+    /** Providers waiting for approval, rejected or suspended are not visible on the storefront. */
+    private void requirePublicProvider(Long providerId) {
+        userRepository.findById(providerId)
+                .filter(u -> !u.isDeleted() && u.getStatus() == UserStatus.ACTIVE)
+                .orElseThrow(() -> new ResourceNotFoundException("Service provider", "id", providerId));
+    }
 
     private Long providerId(UserPrincipal currentUser) {
         CurrentUser.require(currentUser);

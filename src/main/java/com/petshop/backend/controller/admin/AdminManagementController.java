@@ -62,7 +62,9 @@ public class AdminManagementController {
     }
 
     @PatchMapping("/users/{id}/status")
-    @Operation(summary = "Approve, reject or suspend an account", description = "The user is notified by email.")
+    @Operation(summary = "Approve, reject or suspend an account",
+            description = "Works for vendors and service providers. ACTIVE approves; REJECTED or SUSPENDED signs the user out "
+                    + "and hides their products or services. The user is notified by email.")
     public ResponseEntity<ApiResponse<UserResponse>> userStatus(@PathVariable Long id, @Valid @RequestBody UpdateUserStatusRequest request) {
         return ResponseEntity.ok(ApiResponse.success("User status updated", adminService.updateUserStatus(id, request)));
     }

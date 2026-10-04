@@ -2,8 +2,27 @@ openapi: 3.0.1
 info:
   title: PetShop API
   description: |
-    **PetShop** is an online marketplace for pet owners. Customers buy pet products from independent stores
-    and find grooming, veterinary and training centers. This API is the backend of the whole platform.
+    ## About PetShop
+
+    **PetShop** is an online marketplace for pet owners. In one place, customers can buy food, toys and
+    accessories for their pets from independent stores, and find trusted grooming, veterinary and training
+    centers nearby.
+
+    The platform brings four kinds of users together:
+
+    * **Customers** browse the catalogue, compare products by pet type, brand and price, pay at checkout
+      and follow every order until it is delivered.
+    * **Vendors** open their own store, manage products and stock, process orders and withdraw their earnings.
+    * **Service providers** present their center with a price list, team, weekly schedule and photo gallery.
+    * **Administrators** approve new sellers and centers, moderate reviews and manage the site content.
+
+    PetShop is a full-stack web application: a React website on top of this API. The API stores the data,
+    enforces the business rules (stock, prices, order statuses, approvals, permissions) and powers every
+    page of the website.
+
+    <strong class="petshop-red">Live website:</strong> [pet-shop-frontend-side.vercel.app](https://pet-shop-frontend-side.vercel.app)
+
+    **Built with:** Java 17, Spring Boot 3, Spring Security (JWT), PostgreSQL, Liquibase, OpenAPI / Swagger.
 
     ## What the API covers
 
@@ -43,21 +62,7 @@ info:
     2. Buyer adds products to the cart → checks out (stock is reserved, one order per store).
     3. Vendor moves the order **pending → processing → shipping → delivered**.
     4. Buyer reviews the product → its rating updates.
-
-    ## Response format
-
-    Every response uses the same envelope. Errors also carry a machine-readable `code`.
-
-    ```json
-    {
-      "success": true,
-      "message": "Products fetched",
-      "data": { }
-    }
-    ```
-
-    Lists are paged: `content`, `pageNumber`, `pageSize`, `totalElements`, `totalPages`, `last`
-    (`page` starts at 0, `size` is at most 100).
+    5. Service provider registers → admin approves → the center is listed and services can be published.
 
     ## Status codes
 
@@ -70,15 +75,6 @@ info:
     | `404` | Resource not found |
     | `409` | Conflict: duplicate, not enough stock, invalid status change |
     | `429` | Too many requests (login, forms) |
-
-    ## Conventions
-
-    * Money is in AZN (₼) with two decimals; dates are ISO-8601.
-    * Images: upload with `POST /api/v1/files`, then send the returned `url`.
-    * Inside every section, endpoints follow **GET → POST → PUT → PATCH**, and **DELETE** endpoints are listed last.
-  contact:
-    name: PetShop backend
-    url: https://pet-shop-frontend-side.vercel.app
   version: "2.0"
 servers:
 - url: /
@@ -2911,7 +2907,7 @@ paths:
       tags:
       - Provider Dashboard
       summary: Update a service
-      description: Replaces the line's fields.
+      description: Replaces the line's fields. Stays hidden while the account is PENDING_APPROVAL.
       operationId: updateService
       parameters:
       - name: id
@@ -3807,7 +3803,8 @@ paths:
       tags:
       - Auth
       summary: Change my password
-      description: Requires the current password; other sessions are signed out.
+      description: Requires the current password; other sessions are signed out and
+        a confirmation email is sent.
       operationId: changePassword
       requestBody:
         content:
@@ -8991,6 +8988,7 @@ paths:
       - Provider Dashboard
       summary: Create a service
       description: Price-list line; priceMax must be greater than or equal to priceMin.
+        While the account is PENDING_APPROVAL the service is saved hidden (active=false).
       operationId: createService
       requestBody:
         content:
@@ -10015,7 +10013,8 @@ paths:
       tags:
       - Auth
       summary: Reset the password with the emailed code
-      description: 5 wrong attempts invalidate the code. All sessions are signed out.
+      description: 5 wrong attempts invalidate the code. All sessions are signed out
+        and a confirmation email is sent.
       operationId: resetPassword
       requestBody:
         content:
@@ -10417,6 +10416,73 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/LoginRequest'
+        required: true
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseAuthResponse'
+        "400":
+          description: Invalid input. Field errors are listed in data.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    nullable: true
+                  code:
+                    type: string
+              example:
+                success: false
+                message: Invalid input. Field errors are listed in data.
+                data: null
+                code: VALIDATION_ERROR
+        "409":
+          description: "Conflict with the current state (duplicate, stock or status\
+            \ rule)."
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    nullable: true
+                  code:
+                    type: string
+              example:
+                success: false
+                message: "Conflict with the current state (duplicate, stock or status\
+                  \ rule)."
+                data: null
+                code: CONFLICT
+      security: []
+  /api/v1/auth/google:
+    post:
+      tags:
+      - Auth
+      summary: Sign in with Google
+      description: Send the ID token (`credential`) from the Google Sign-In button.
+        A buyer account is created on first sign-in; an existing account with the
+        same email is signed in. Requires GOOGLE_CLIENT_ID on the server.
+      operationId: loginWithGoogle
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GoogleLoginRequest'
         required: true
       responses:
         "200":
@@ -13154,7 +13220,8 @@ paths:
       tags:
       - Provider Dashboard
       summary: Activate or deactivate a service
-      description: "Body: {\"active\": false}. Inactive services are hidden publicly."
+      description: "Body: {\"active\": false}. Inactive services are hidden publicly.\
+        \ Activating requires an approved account (403 ACCOUNT_PENDING_APPROVAL otherwise)."
       operationId: serviceStatus
       parameters:
       - name: id
@@ -13292,7 +13359,9 @@ paths:
       tags:
       - Admin - Operations
       summary: "Approve, reject or suspend an account"
-      description: The user is notified by email.
+      description: Works for vendors and service providers. ACTIVE approves; REJECTED
+        or SUSPENDED signs the user out and hides their products or services. The
+        user is notified by email.
       operationId: userStatus
       parameters:
       - name: id
@@ -21079,6 +21148,18 @@ components:
           type: boolean
           description: "Long-lived refresh token (30 days) when true, 24 hours otherwise"
           example: true
+    GoogleLoginRequest:
+      required:
+      - idToken
+      type: object
+      properties:
+        idToken:
+          type: string
+          description: The `credential` (ID token) returned by the Google Sign-In
+            button
+        rememberMe:
+          type: boolean
+          description: Long-lived refresh token (30 days) when true
     ForgotPasswordRequest:
       required:
       - email
