@@ -153,6 +153,8 @@ public class AppProperties {
         private String fromName = "PetShop";
         /** Shop's own inbox; receives a notification for every new newsletter subscriber. Empty = no notification. */
         private String notifyTo;
+        /** Brevo transactional-email API key. When set, mail is sent over HTTPS instead of SMTP (hosts such as Railway Hobby block SMTP ports). */
+        private String brevoApiKey;
 
         public String getFrom() { return from; }
         public void setFrom(String from) { this.from = from; }
@@ -160,6 +162,8 @@ public class AppProperties {
         public void setFromName(String fromName) { this.fromName = fromName; }
         public String getNotifyTo() { return notifyTo; }
         public void setNotifyTo(String notifyTo) { this.notifyTo = notifyTo; }
+        public String getBrevoApiKey() { return brevoApiKey; }
+        public void setBrevoApiKey(String brevoApiKey) { this.brevoApiKey = brevoApiKey; }
     }
 
     public static class Google {

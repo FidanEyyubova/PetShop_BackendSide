@@ -41,6 +41,7 @@ services:
       MAIL_PASSWORD: ${MAIL_PASSWORD:-}
       MAIL_FROM: ${MAIL_FROM:-}
       MAIL_NOTIFY_TO: ${MAIL_NOTIFY_TO:-}
+      BREVO_API_KEY: ${BREVO_API_KEY:-}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
     volumes:
       - uploads:/app/uploads

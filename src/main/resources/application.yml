@@ -88,6 +88,8 @@ app:
     from: ${MAIL_FROM:no-reply@petshop.az}
     from-name: ${MAIL_FROM_NAME:PetShop}
     notify-to: ${MAIL_NOTIFY_TO:}
+    # Optional: Brevo HTTPS email API (used instead of SMTP when set). MAIL_FROM must be a sender verified in Brevo.
+    brevo-api-key: ${BREVO_API_KEY:}
   google:
     client-id: ${GOOGLE_CLIENT_ID:}
   rate-limit:

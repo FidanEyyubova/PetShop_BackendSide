@@ -10,25 +10,35 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClient;
 import org.springframework.web.util.HtmlUtils;
 
 import java.nio.charset.StandardCharsets;
+import java.util.List;
+import java.util.Map;
 
 /**
- * Sends emails through SMTP when MAIL_HOST is configured.
+ * Sends emails through the Brevo HTTPS API when BREVO_API_KEY is set, otherwise through SMTP when MAIL_HOST is set.
+ * The HTTPS route exists because some hosts (e.g. Railway Free / Trial / Hobby) block outbound SMTP ports.
  * Every message carries a plain-text and an HTML part plus a sender display name, which spam filters
- * rate better than bare text. Without SMTP the message is not delivered and only a log line is written.
+ * rate better than bare text. With neither configured the message is not delivered and only a log line is written.
  */
 @Service
 public class EmailService {
 
     private static final Logger log = LoggerFactory.getLogger(EmailService.class);
+    private static final String BREVO_API_URL = "https://api.brevo.com/v3";
 
     private final ObjectProvider<JavaMailSender> mailSender;
     private final String host;
     private final String from;
     private final String fromName;
+    private final String brevoApiKey;
+    /** Brevo only accepts a sender address verified in the Brevo account (MAIL_FROM). */
+    private final String brevoFrom;
+    private final RestClient brevo = RestClient.create(BREVO_API_URL);
 
     public EmailService(ObjectProvider<JavaMailSender> mailSender,
                         @Value("${spring.mail.host:}") String host,
@@ -41,18 +51,58 @@ public class EmailService {
         this.from = username != null && !username.isBlank() ? username.trim()
                 : configuredFrom == null ? "" : configuredFrom.trim();
         this.fromName = properties.getMail().getFromName();
+        this.brevoApiKey = properties.getMail().getBrevoApiKey();
+        this.brevoFrom = configuredFrom == null ? "" : configuredFrom.trim();
+    }
+
+    private boolean isBrevoEnabled() {
+        return brevoApiKey != null && !brevoApiKey.isBlank();
+    }
+
+    private boolean isSmtpEnabled() {
+        return host != null && !host.isBlank() && mailSender.getIfAvailable() != null;
     }
 
     public boolean isEnabled() {
-        return host != null && !host.isBlank() && mailSender.getIfAvailable() != null;
+        return isBrevoEnabled() || isSmtpEnabled();
     }
 
     @Async
     public void send(String to, String subject, String body) {
-        if (!isEnabled()) {
-            log.warn("SMTP is not configured (MAIL_HOST); email '{}' to {} was not sent", subject, to);
-            return;
+        if (isBrevoEnabled()) {
+            sendViaBrevo(to, subject, body);
+        } else if (isSmtpEnabled()) {
+            sendViaSmtp(to, subject, body);
+        } else {
+            log.warn("Email is not configured (BREVO_API_KEY or MAIL_HOST); email '{}' to {} was not sent", subject, to);
         }
+    }
+
+    /** POST https://api.brevo.com/v3/smtp/email — plain HTTPS (port 443), so it works where SMTP ports are blocked. */
+    private void sendViaBrevo(String to, String subject, String body) {
+        try {
+            Map<String, Object> payload = Map.of(
+                    "sender", Map.of("name", fromName, "email", brevoFrom),
+                    "to", List.of(Map.of("email", to.trim())),
+                    "replyTo", Map.of("email", brevoFrom),
+                    "subject", subject,
+                    "textContent", body,
+                    "htmlContent", toHtml(subject, body));
+            brevo.post()
+                    .uri("/smtp/email")
+                    .header("api-key", brevoApiKey.trim())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .accept(MediaType.APPLICATION_JSON)
+                    .body(payload)
+                    .retrieve()
+                    .toBodilessEntity();
+            log.info("Email '{}' sent to {} via Brevo", subject, to);
+        } catch (Exception e) {
+            log.error("Failed to send email '{}' to {} via Brevo: {}", subject, to, e.getMessage());
+        }
+    }
+
+    private void sendViaSmtp(String to, String subject, String body) {
         try {
             JavaMailSender sender = mailSender.getObject();
             MimeMessage message = sender.createMimeMessage();
