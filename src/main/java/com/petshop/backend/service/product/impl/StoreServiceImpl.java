@@ -4,6 +4,7 @@ import com.petshop.backend.dto.request.product.CreateStoreRequest;
 import com.petshop.backend.dto.response.common.PageResponse;
 import com.petshop.backend.dto.response.product.StoreResponse;
 import com.petshop.backend.entity.product.Store;
+import com.petshop.backend.entity.user.User;
 import com.petshop.backend.exception.AccessDeniedCustomException;
 import com.petshop.backend.exception.ConflictException;
 import com.petshop.backend.exception.ResourceNotFoundException;
@@ -16,6 +17,8 @@ import com.petshop.backend.util.MaskUtils;
 import com.petshop.backend.util.PageUtils;
 import com.petshop.backend.util.SlugUtils;
 import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
+import jakarta.persistence.criteria.Subquery;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
@@ -91,6 +94,11 @@ public class StoreServiceImpl implements StoreService {
     public PageResponse<StoreResponse> getAllStores(String q, String city, int page, int size) {
         Specification<Store> spec = (root, query, cb) -> {
             List<Predicate> p = new ArrayList<>();
+            // Stores of deleted accounts are not listed
+            Subquery<Long> liveOwners = query.subquery(Long.class);
+            Root<User> owner = liveOwners.from(User.class);
+            liveOwners.select(owner.get("id")).where(cb.isNull(owner.get("deletedAt")));
+            p.add(root.get("ownerId").in(liveOwners));
             if (q != null && !q.isBlank()) {
                 p.add(cb.like(cb.lower(root.get("name")), "%" + MaskUtils.escapeLike(q.trim().toLowerCase(Locale.ROOT)) + "%", '\\'));
             }

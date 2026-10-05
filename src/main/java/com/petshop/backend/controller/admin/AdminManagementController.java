@@ -19,6 +19,7 @@ import com.petshop.backend.security.UserPrincipal;
 import com.petshop.backend.service.admin.AdminManagementService;
 import com.petshop.backend.service.content.NewsletterService;
 import com.petshop.backend.service.coupon.CouponService;
+import com.petshop.backend.service.user.UserAccountService;
 import com.petshop.backend.service.vendor.VendorFinanceService;
 import com.petshop.backend.service.vendor.VendorOrderService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -44,15 +45,17 @@ public class AdminManagementController {
     private final CouponService couponService;
     private final NewsletterService newsletterService;
     private final VendorFinanceService financeService;
+    private final UserAccountService accountService;
 
     public AdminManagementController(AdminManagementService adminService, VendorOrderService orderService,
                                      CouponService couponService, NewsletterService newsletterService,
-                                     VendorFinanceService financeService) {
+                                     VendorFinanceService financeService, UserAccountService accountService) {
         this.adminService = adminService;
         this.orderService = orderService;
         this.couponService = couponService;
         this.newsletterService = newsletterService;
         this.financeService = financeService;
+        this.accountService = accountService;
     }
 
     @GetMapping("/users")
@@ -72,6 +75,16 @@ public class AdminManagementController {
                     + "and hides their products or services. The user is notified by email.")
     public ResponseEntity<ApiResponse<UserResponse>> userStatus(@PathVariable Long id, @Valid @RequestBody UpdateUserStatusRequest request) {
         return ResponseEntity.ok(ApiResponse.success("User status updated", adminService.updateUserStatus(id, request)));
+    }
+
+    @DeleteMapping("/users/{id}")
+    @Operation(summary = "Delete an account",
+            description = "Soft delete of any non-admin account: personal data is anonymised and the email is released, so the "
+                    + "person can register again with it. A seller's products / services are hidden; orders and reviews stay "
+                    + "anonymously. 409 ACTIVE_ORDERS while the account has orders in progress; 409 ADMIN_ACCOUNT for admins.")
+    public ResponseEntity<ApiResponse<Void>> deleteUser(@PathVariable Long id) {
+        accountService.deleteAccountByAdmin(id);
+        return ResponseEntity.ok(ApiResponse.success("Account deleted", null));
     }
 
     @GetMapping("/users/{id}/bank-details")
