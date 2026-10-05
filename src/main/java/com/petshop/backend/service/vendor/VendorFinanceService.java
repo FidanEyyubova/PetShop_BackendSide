@@ -14,5 +14,7 @@ public interface VendorFinanceService {
     List<VendorPayoutResponse> getPayoutHistory(UserPrincipal currentUser);
     VendorPayoutResponse createPayoutRequest(CreatePayoutRequest request, UserPrincipal currentUser);
     VendorBankDetailsResponse getBankDetails(UserPrincipal currentUser);
+    /** Bank details of any vendor (admin review); empty fields when the vendor has saved none. */
+    VendorBankDetailsResponse getBankDetailsOf(Long vendorId);
     VendorBankDetailsResponse updateBankDetails(VendorBankDetailsRequest request, UserPrincipal currentUser);
 }

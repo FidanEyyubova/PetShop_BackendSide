@@ -133,7 +133,12 @@ public class VendorFinanceServiceImpl implements VendorFinanceService {
     @Override
     @Transactional(readOnly = true)
     public VendorBankDetailsResponse getBankDetails(UserPrincipal currentUser) {
-        Long vendorId = CurrentUser.require(currentUser).getId();
+        return getBankDetailsOf(CurrentUser.require(currentUser).getId());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public VendorBankDetailsResponse getBankDetailsOf(Long vendorId) {
         return bankDetailsRepository.findByVendorId(vendorId)
                 .map(VendorFinanceServiceImpl::toResponse)
                 .orElseGet(() -> VendorBankDetailsResponse.builder()

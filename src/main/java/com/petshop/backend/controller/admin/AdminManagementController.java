@@ -13,11 +13,13 @@ import com.petshop.backend.dto.response.coupon.CouponAdminResponse;
 import com.petshop.backend.dto.response.order.OrderResponse;
 import com.petshop.backend.dto.response.product.StoreResponse;
 import com.petshop.backend.dto.response.user.UserResponse;
+import com.petshop.backend.dto.response.vendor.VendorBankDetailsResponse;
 import com.petshop.backend.dto.response.vendor.VendorPayoutResponse;
 import com.petshop.backend.security.UserPrincipal;
 import com.petshop.backend.service.admin.AdminManagementService;
 import com.petshop.backend.service.content.NewsletterService;
 import com.petshop.backend.service.coupon.CouponService;
+import com.petshop.backend.service.vendor.VendorFinanceService;
 import com.petshop.backend.service.vendor.VendorOrderService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -41,13 +43,16 @@ public class AdminManagementController {
     private final VendorOrderService orderService;
     private final CouponService couponService;
     private final NewsletterService newsletterService;
+    private final VendorFinanceService financeService;
 
     public AdminManagementController(AdminManagementService adminService, VendorOrderService orderService,
-                                     CouponService couponService, NewsletterService newsletterService) {
+                                     CouponService couponService, NewsletterService newsletterService,
+                                     VendorFinanceService financeService) {
         this.adminService = adminService;
         this.orderService = orderService;
         this.couponService = couponService;
         this.newsletterService = newsletterService;
+        this.financeService = financeService;
     }
 
     @GetMapping("/users")
@@ -67,6 +72,14 @@ public class AdminManagementController {
                     + "and hides their products or services. The user is notified by email.")
     public ResponseEntity<ApiResponse<UserResponse>> userStatus(@PathVariable Long id, @Valid @RequestBody UpdateUserStatusRequest request) {
         return ResponseEntity.ok(ApiResponse.success("User status updated", adminService.updateUserStatus(id, request)));
+    }
+
+    @GetMapping("/users/{id}/bank-details")
+    @Operation(summary = "Get a vendor's bank details",
+            description = "Full IBAN, bank name, account holder and VÖEN the vendor gave at registration or in Finance, "
+                    + "for reviewing a seller before approval. Fields are empty when nothing was saved.")
+    public ResponseEntity<ApiResponse<VendorBankDetailsResponse>> userBankDetails(@PathVariable Long id) {
+        return ResponseEntity.ok(ApiResponse.success("Bank details fetched", financeService.getBankDetailsOf(id)));
     }
 
     @GetMapping("/orders")
