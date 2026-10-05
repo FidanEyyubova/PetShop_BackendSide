@@ -12,6 +12,7 @@ import com.petshop.backend.dto.response.content.NewsletterSubscriberResponse;
 import com.petshop.backend.dto.response.coupon.CouponAdminResponse;
 import com.petshop.backend.dto.response.order.OrderResponse;
 import com.petshop.backend.dto.response.product.StoreResponse;
+import com.petshop.backend.dto.response.user.AccountDeletionResponse;
 import com.petshop.backend.dto.response.user.UserResponse;
 import com.petshop.backend.dto.response.vendor.VendorBankDetailsResponse;
 import com.petshop.backend.dto.response.vendor.VendorPayoutResponse;
@@ -85,6 +86,17 @@ public class AdminManagementController {
     public ResponseEntity<ApiResponse<Void>> deleteUser(@PathVariable Long id) {
         accountService.deleteAccountByAdmin(id);
         return ResponseEntity.ok(ApiResponse.success("Account deleted", null));
+    }
+
+    @GetMapping("/account-deletions")
+    @Operation(summary = "List deleted accounts",
+            description = "Who deleted their account (or was deleted by an admin), when, and the reason given. "
+                    + "Name and email are the values before anonymisation. Filter by deletedBy=SELF or ADMIN.")
+    public ResponseEntity<ApiResponse<PageResponse<AccountDeletionResponse>>> accountDeletions(
+            @RequestParam(required = false) String deletedBy,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        return ResponseEntity.ok(ApiResponse.success("Account deletions fetched", accountService.deletions(deletedBy, page, size)));
     }
 
     @GetMapping("/users/{id}/bank-details")

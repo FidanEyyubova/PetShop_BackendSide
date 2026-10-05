@@ -4,10 +4,13 @@ import com.petshop.backend.common.OrderStatus;
 import com.petshop.backend.common.Roles;
 import com.petshop.backend.dto.request.user.DeleteAccountRequest;
 import com.petshop.backend.dto.request.user.NotificationPreferencesRequest;
+import com.petshop.backend.dto.response.common.PageResponse;
+import com.petshop.backend.dto.response.user.AccountDeletionResponse;
 import com.petshop.backend.dto.response.user.NotificationPreferencesResponse;
 import com.petshop.backend.dto.response.user.UserStatsResponse;
 import com.petshop.backend.entity.product.Product;
 import com.petshop.backend.entity.service.PetService;
+import com.petshop.backend.entity.user.AccountDeletion;
 import com.petshop.backend.entity.user.User;
 import com.petshop.backend.exception.BadRequestException;
 import com.petshop.backend.exception.ConflictException;
@@ -18,16 +21,21 @@ import com.petshop.backend.repository.order.OrderRepository;
 import com.petshop.backend.repository.order.WishlistRepository;
 import com.petshop.backend.repository.product.ProductRepository;
 import com.petshop.backend.repository.service.PetServiceRepository;
+import com.petshop.backend.repository.user.AccountDeletionRepository;
 import com.petshop.backend.repository.user.UserAddressRepository;
 import com.petshop.backend.repository.user.UserRepository;
 import com.petshop.backend.security.CurrentUser;
 import com.petshop.backend.security.UserPrincipal;
+import com.petshop.backend.util.PageUtils;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Locale;
 
 @Service
 public class UserAccountService {
@@ -42,12 +50,14 @@ public class UserAccountService {
     private final PasswordEncoder passwordEncoder;
     private final ProductRepository productRepository;
     private final PetServiceRepository serviceRepository;
+    private final AccountDeletionRepository deletionRepository;
 
     public UserAccountService(UserRepository userRepository, OrderRepository orderRepository,
                               CartItemRepository cartItemRepository, WishlistRepository wishlistRepository,
                               ReviewRepository reviewRepository, UserAddressRepository addressRepository,
                               RefreshTokenService refreshTokenService, PasswordEncoder passwordEncoder,
-                              ProductRepository productRepository, PetServiceRepository serviceRepository) {
+                              ProductRepository productRepository, PetServiceRepository serviceRepository,
+                              AccountDeletionRepository deletionRepository) {
         this.userRepository = userRepository;
         this.orderRepository = orderRepository;
         this.cartItemRepository = cartItemRepository;
@@ -58,6 +68,7 @@ public class UserAccountService {
         this.passwordEncoder = passwordEncoder;
         this.productRepository = productRepository;
         this.serviceRepository = serviceRepository;
+        this.deletionRepository = deletionRepository;
     }
 
     @Transactional(readOnly = true)
@@ -90,19 +101,23 @@ public class UserAccountService {
     /**
      * Soft-deletes the account: personal data is anonymised, the email is released for re-registration,
      * sessions, cart, wishlist and addresses are removed. Orders and reviews stay for vendors' records.
+     * The password is checked when the account has one (Google sign-in accounts have none); the reason is logged for admins.
      */
     @Transactional
     public void deleteAccount(DeleteAccountRequest request, UserPrincipal currentUser) {
         User user = load(currentUser);
-        if (user.getPassword() == null || !passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+        if (user.getPassword() != null && (request.getPassword() == null
+                || !passwordEncoder.matches(request.getPassword(), user.getPassword()))) {
             throw new BadRequestException("WRONG_PASSWORD", "Password is incorrect");
         }
         if (currentUser.isAdmin()) {
             throw new ConflictException("ADMIN_ACCOUNT", "Admin accounts cannot be deleted from the profile");
         }
-        if (orderRepository.countByBuyerIdAndStatusIn(user.getId(), OrderStatus.ACTIVE) > 0) {
+        if (hasOrdersInProgress(user.getId())) {
             throw new ConflictException("ACTIVE_ORDERS", "You have orders in progress; delete the account after they are completed or cancelled");
         }
+        hideSellerItems(user.getId());
+        logDeletion(user, AccountDeletion.BY_SELF, request.getReason(), request.getComment());
         anonymise(user);
     }
 
@@ -119,12 +134,55 @@ public class UserAccountService {
         if (Roles.ROLE_ADMIN.equals(Roles.normalize(user.getRole()))) {
             throw new ConflictException("ADMIN_ACCOUNT", "Admin accounts cannot be deleted");
         }
-        if (orderRepository.countByBuyerIdAndStatusIn(userId, OrderStatus.ACTIVE) > 0
-                || orderRepository.countByVendorIdAndStatusIn(userId, OrderStatus.ACTIVE) > 0) {
+        if (hasOrdersInProgress(userId)) {
             throw new ConflictException("ACTIVE_ORDERS", "This account has orders in progress; delete it after they are completed or cancelled");
         }
         hideSellerItems(userId);
+        logDeletion(user, AccountDeletion.BY_ADMIN, null, null);
         anonymise(user);
+    }
+
+    /** Deleted accounts, newest first; {@code deletedBy} (SELF or ADMIN) filters by who deleted them. */
+    @Transactional(readOnly = true)
+    public PageResponse<AccountDeletionResponse> deletions(String deletedBy, int page, int size) {
+        var pageable = PageUtils.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Page<AccountDeletion> result = deletedBy == null || deletedBy.isBlank()
+                ? deletionRepository.findAll(pageable)
+                : deletionRepository.findByDeletedBy(deletedBy.trim().toUpperCase(Locale.ROOT), pageable);
+        return PageResponse.of(result, UserAccountService::toDeletionResponse);
+    }
+
+    /** Orders in progress as a buyer or, for vendors, as the selling store. */
+    private boolean hasOrdersInProgress(Long userId) {
+        return orderRepository.countByBuyerIdAndStatusIn(userId, OrderStatus.ACTIVE) > 0
+                || orderRepository.countByVendorIdAndStatusIn(userId, OrderStatus.ACTIVE) > 0;
+    }
+
+    /** Records who the account belonged to before anonymisation, and why it was deleted. */
+    private void logDeletion(User user, String deletedBy, String reason, String comment) {
+        deletionRepository.save(AccountDeletion.builder()
+                .userId(user.getId())
+                .role(user.getRole())
+                .fullName(user.getFullName())
+                .email(user.getEmail())
+                .reason(reason == null || reason.isBlank() ? null : reason.trim().toUpperCase(Locale.ROOT))
+                .comment(comment == null || comment.isBlank() ? null : comment.trim())
+                .deletedBy(deletedBy)
+                .build());
+    }
+
+    private static AccountDeletionResponse toDeletionResponse(AccountDeletion d) {
+        return AccountDeletionResponse.builder()
+                .id(d.getId())
+                .userId(d.getUserId())
+                .role(d.getRole())
+                .fullName(d.getFullName())
+                .email(d.getEmail())
+                .reason(d.getReason())
+                .comment(d.getComment())
+                .deletedBy(d.getDeletedBy())
+                .createdAt(d.getCreatedAt())
+                .build();
     }
 
     /** Hides a vendor's products and a provider's services so nothing of a deleted seller stays on sale. */

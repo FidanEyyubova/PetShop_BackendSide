@@ -33,5 +33,8 @@ public class UserResponse {
     @Schema(description = "Vendor's store id (vendors only)")
     private Long storeId;
 
+    @Schema(description = "false for accounts created with Google sign-in (no password to confirm with)")
+    private Boolean hasPassword;
+
     private LocalDateTime createdAt;
 }

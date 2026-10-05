@@ -32,6 +32,7 @@ public class UserMapper {
                 .avatarUrl(user.getAvatarUrl())
                 .cityAddress(user.getCityAddress())
                 .storeId(storeId)
+                .hasPassword(user.getPassword() != null)
                 .createdAt(user.getCreatedAt())
                 .build();
     }

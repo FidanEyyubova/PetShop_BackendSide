@@ -123,8 +123,10 @@ public class AuthController {
 
     @DeleteMapping("/auth/me")
     @Operation(summary = "Delete my account",
-            description = "Requires the current password. Not allowed while orders are in progress (409). "
-                    + "Personal data is anonymised; past orders and reviews are kept anonymously.")
+            description = "Requires the current password (not for Google sign-in accounts, see hasPassword on the profile). "
+                    + "Not allowed while orders are in progress as buyer or vendor (409). Optional reason "
+                    + "(NOT_USING, SWITCHING, PRIVACY, BAD_EXPERIENCE, OTHER) and comment are shown to admins. "
+                    + "Personal data is anonymised and the email can register again; past orders and reviews are kept anonymously.")
     public ResponseEntity<ApiResponse<Void>> deleteAccount(@Valid @RequestBody DeleteAccountRequest request,
                                                            @AuthenticationPrincipal UserPrincipal currentUser) {
         accountService.deleteAccount(request, currentUser);

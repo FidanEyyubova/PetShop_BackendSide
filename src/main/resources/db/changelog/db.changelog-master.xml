@@ -355,4 +355,6 @@
 
     <!-- Schema alignment for the storefront and dashboards (idempotent, PostgreSQL). -->
     <include file="db/changelog/changes/002-frontend-alignment.sql" />
+    <!-- Deleted-accounts log with the reason given (admin review). -->
+    <include file="db/changelog/changes/003-account-deletions.sql" />
 </databaseChangeLog>
