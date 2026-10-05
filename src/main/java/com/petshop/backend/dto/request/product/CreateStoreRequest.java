@@ -43,6 +43,13 @@ public class CreateStoreRequest {
     @Pattern(regexp = ValidationPatterns.PHONE, message = ValidationPatterns.PHONE_MESSAGE)
     private String altPhone;
 
+    @Pattern(regexp = ValidationPatterns.PHONE, message = ValidationPatterns.PHONE_MESSAGE)
+    private String whatsapp;
+
+    @Size(max = 300)
+    @Schema(description = "Instagram handle (@petshop) or profile URL")
+    private String instagram;
+
     @Email(message = "Enter a valid email address")
     @Size(max = 150)
     private String email;

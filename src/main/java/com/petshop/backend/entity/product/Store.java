@@ -47,6 +47,11 @@ public class Store {
     @Column(name = "alt_phone")
     private String altPhone;
 
+    private String whatsapp;
+
+    @Column(length = 300)
+    private String instagram;
+
     private String email;
     private String address;
     private String city;

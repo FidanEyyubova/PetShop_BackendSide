@@ -43,8 +43,10 @@ public class StoreController {
 
     @GetMapping("/{idOrSlug}")
     @Operation(summary = "Get a store", description = "By numeric id or slug: profile, coordinates, hours, features, rating and product count.")
-    public ResponseEntity<ApiResponse<StoreResponse>> get(@PathVariable String idOrSlug) {
-        return ResponseEntity.ok(ApiResponse.success("Store fetched", storeService.getStore(idOrSlug)));
+    public ResponseEntity<ApiResponse<StoreResponse>> get(@PathVariable String idOrSlug,
+                                                          @AuthenticationPrincipal UserPrincipal currentUser) {
+        // The owner and admins also receive the store VÖEN
+        return ResponseEntity.ok(ApiResponse.success("Store fetched", storeService.getStore(idOrSlug, currentUser)));
     }
 
     @GetMapping("/{id}/products")

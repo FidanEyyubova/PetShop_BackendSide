@@ -26,6 +26,8 @@ public class StoreResponse {
     private String description;
     private String phone;
     private String altPhone;
+    private String whatsapp;
+    private String instagram;
     private String email;
     private String address;
     private String city;

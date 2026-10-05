@@ -357,4 +357,6 @@
     <include file="db/changelog/changes/002-frontend-alignment.sql" />
     <!-- Deleted-accounts log with the reason given (admin review). -->
     <include file="db/changelog/changes/003-account-deletions.sql" />
+    <!-- WhatsApp and Instagram on store contact details. -->
+    <include file="db/changelog/changes/004-store-social.sql" />
 </databaseChangeLog>

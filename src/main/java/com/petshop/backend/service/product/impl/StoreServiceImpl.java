@@ -68,11 +68,18 @@ public class StoreServiceImpl implements StoreService {
     @Override
     @Transactional(readOnly = true)
     public StoreResponse getStore(String idOrSlug) {
+        return getStore(idOrSlug, null);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public StoreResponse getStore(String idOrSlug, UserPrincipal viewer) {
         Store store = (idOrSlug.matches("\\d+")
                 ? storeRepository.findById(Long.parseLong(idOrSlug))
                 : storeRepository.findBySlug(idOrSlug))
                 .orElseThrow(() -> new ResourceNotFoundException("Store", "id", idOrSlug));
-        return toResponse(store, false);
+        boolean includePrivate = viewer != null && (viewer.isAdmin() || viewer.getId().equals(store.getOwnerId()));
+        return toResponse(store, includePrivate);
     }
 
     @Override
@@ -143,6 +150,8 @@ public class StoreServiceImpl implements StoreService {
         store.setBannerUrl(blank(r.getBannerUrl()));
         store.setPhone(blank(r.getPhone()));
         store.setAltPhone(blank(r.getAltPhone()));
+        store.setWhatsapp(blank(r.getWhatsapp()));
+        store.setInstagram(blank(r.getInstagram()));
         store.setEmail(blank(r.getEmail()));
         store.setAddress(blank(r.getAddress()));
         store.setCity(blank(r.getCity()));
@@ -167,6 +176,8 @@ public class StoreServiceImpl implements StoreService {
                 .description(s.getDescription())
                 .phone(s.getPhone())
                 .altPhone(s.getAltPhone())
+                .whatsapp(s.getWhatsapp())
+                .instagram(s.getInstagram())
                 .email(s.getEmail())
                 .address(s.getAddress())
                 .city(s.getCity())

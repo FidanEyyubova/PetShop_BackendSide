@@ -5,7 +5,10 @@ import com.petshop.backend.dto.request.service.*;
 import com.petshop.backend.dto.response.common.ApiResponse;
 import com.petshop.backend.dto.response.service.*;
 import com.petshop.backend.security.UserPrincipal;
+import com.petshop.backend.dto.request.vendor.VendorBankDetailsRequest;
+import com.petshop.backend.dto.response.vendor.VendorBankDetailsResponse;
 import com.petshop.backend.service.service.ProviderManagementService;
+import com.petshop.backend.service.vendor.VendorFinanceService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -26,9 +29,11 @@ public class ProviderController {
     private static final String PROVIDER = "hasAnyRole('" + Roles.SERVICE_PROVIDER + "','" + Roles.ADMIN + "')";
 
     private final ProviderManagementService providerService;
+    private final VendorFinanceService financeService;
 
-    public ProviderController(ProviderManagementService providerService) {
+    public ProviderController(ProviderManagementService providerService, VendorFinanceService financeService) {
         this.providerService = providerService;
+        this.financeService = financeService;
     }
 
     // ---- profile -------------------------------------------------------------------------------
@@ -53,6 +58,23 @@ public class ProviderController {
     @Operation(summary = "Get my metrics", description = "Page views, contact clicks, wishlist adds, rating, reviews count and profile completeness.")
     public ResponseEntity<ApiResponse<ProviderStatsResponse>> stats(@AuthenticationPrincipal UserPrincipal currentUser) {
         return ResponseEntity.ok(ApiResponse.success("Stats fetched", providerService.getStats(currentUser)));
+    }
+
+    // ---- bank & legal details (same store as sellers; admins review them before approval) -------
+
+    @GetMapping("/bank-details")
+    @PreAuthorize(PROVIDER)
+    @Operation(summary = "Get my bank details", description = "VÖEN, IBAN, bank name and account holder; empty fields when nothing is saved.")
+    public ResponseEntity<ApiResponse<VendorBankDetailsResponse>> bankDetails(@AuthenticationPrincipal UserPrincipal currentUser) {
+        return ResponseEntity.ok(ApiResponse.success("Bank details fetched", financeService.getBankDetails(currentUser)));
+    }
+
+    @PutMapping("/bank-details")
+    @PreAuthorize(PROVIDER)
+    @Operation(summary = "Save my bank details", description = "Required for account approval: VÖEN, IBAN, bank name and account holder.")
+    public ResponseEntity<ApiResponse<VendorBankDetailsResponse>> updateBankDetails(@Valid @RequestBody VendorBankDetailsRequest request,
+                                                                                   @AuthenticationPrincipal UserPrincipal currentUser) {
+        return ResponseEntity.ok(ApiResponse.success("Bank details saved", financeService.updateBankDetails(request, currentUser)));
     }
 
     // ---- team ----------------------------------------------------------------------------------
