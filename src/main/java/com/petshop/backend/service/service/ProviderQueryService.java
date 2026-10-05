@@ -106,16 +106,19 @@ public class ProviderQueryService {
         return PageResponse.of(result, content);
     }
 
-    /** Public page; 404 for unknown, deleted or not yet approved providers. */
+    /**
+     * Public page; 404 for unknown, deleted or not yet approved providers.
+     * {@code adminView}: admins also see providers waiting for approval (to review them) and the private fields.
+     */
     @Transactional(readOnly = true)
-    public ProviderProfileResponse publicProfile(Long providerId) {
+    public ProviderProfileResponse publicProfile(Long providerId, boolean adminView) {
         User user = userRepository.findById(providerId)
                 .filter(u -> Roles.ROLE_SERVICE_PROVIDER.equals(Roles.normalize(u.getRole())))
-                .filter(u -> !u.isDeleted() && u.getStatus() == UserStatus.ACTIVE)
+                .filter(u -> !u.isDeleted() && (adminView || u.getStatus() == UserStatus.ACTIVE))
                 .orElseThrow(() -> new ResourceNotFoundException("Service provider", "id", providerId));
         ServiceProviderProfile profile = profileRepository.findByProviderId(providerId)
                 .orElseThrow(() -> new ResourceNotFoundException("Service provider", "id", providerId));
-        return buildProfile(user, profile, false);
+        return buildProfile(user, profile, adminView);
     }
 
     /** Builds the full profile; {@code owner} adds private fields and shows hidden services and all team members. */

@@ -6,6 +6,7 @@ import com.petshop.backend.dto.response.common.PageResponse;
 import com.petshop.backend.dto.response.service.ProviderProfileResponse;
 import com.petshop.backend.dto.response.service.ProviderSummaryResponse;
 import com.petshop.backend.dto.response.service.ServiceCategoryResponse;
+import com.petshop.backend.security.UserPrincipal;
 import com.petshop.backend.service.service.ProviderManagementService;
 import com.petshop.backend.service.service.ProviderQueryService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -13,6 +14,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -51,9 +53,12 @@ public class ProviderPublicController {
     }
 
     @GetMapping("/providers/{id}")
-    @Operation(summary = "Get a service provider", description = "Profile, price list, featured team, weekly schedule, gallery, amenities and rating.")
-    public ResponseEntity<ApiResponse<ProviderProfileResponse>> get(@PathVariable Long id) {
-        return ResponseEntity.ok(ApiResponse.success("Provider fetched", queryService.publicProfile(id)));
+    @Operation(summary = "Get a service provider", description = "Profile, price list, featured team, weekly schedule, gallery, amenities and rating. "
+            + "Admins also get providers waiting for approval, with the private fields (email, account status).")
+    public ResponseEntity<ApiResponse<ProviderProfileResponse>> get(@PathVariable Long id,
+                                                                    @AuthenticationPrincipal UserPrincipal viewer) {
+        boolean adminView = viewer != null && viewer.isAdmin();
+        return ResponseEntity.ok(ApiResponse.success("Provider fetched", queryService.publicProfile(id, adminView)));
     }
 
     @PostMapping("/providers/{id}/events")
