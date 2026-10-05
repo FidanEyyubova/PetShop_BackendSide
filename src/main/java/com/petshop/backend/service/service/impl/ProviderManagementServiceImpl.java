@@ -79,11 +79,24 @@ public class ProviderManagementServiceImpl implements ProviderManagementService 
         if (r.getWhatsapp() != null) p.setWhatsapp(blank(r.getWhatsapp()));
         if (r.getInstagram() != null) p.setInstagram(blank(r.getInstagram()));
         if (r.getBannerUrl() != null) p.setBannerUrl(blank(r.getBannerUrl()));
-        if (r.getLogoUrl() != null) p.setLogoUrl(blank(r.getLogoUrl()));
+        if (r.getLogoUrl() != null) updateLogo(user, p, blank(r.getLogoUrl()));
         if (r.getAmenities() != null) p.setAmenities(clean(r.getAmenities()));
         if (r.getTags() != null) p.setTags(clean(r.getTags()));
         profileRepository.save(p);
         return queryService.buildProfile(user, p, true);
+    }
+
+    /**
+     * The center logo doubles as the account avatar (admin user lists show avatars), unless the
+     * provider has a different avatar of their own.
+     */
+    private void updateLogo(User user, ServiceProviderProfile p, String logoUrl) {
+        String previousLogo = p.getLogoUrl();
+        p.setLogoUrl(logoUrl);
+        if (user.getAvatarUrl() == null || user.getAvatarUrl().equals(previousLogo)) {
+            user.setAvatarUrl(logoUrl);
+            userRepository.save(user);
+        }
     }
 
     @Override

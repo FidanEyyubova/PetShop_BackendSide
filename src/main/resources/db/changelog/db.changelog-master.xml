@@ -359,4 +359,6 @@
     <include file="db/changelog/changes/003-account-deletions.sql" />
     <!-- WhatsApp and Instagram on store contact details. -->
     <include file="db/changelog/changes/004-store-social.sql" />
+    <!-- Center logo as the provider account avatar (admin lists). -->
+    <include file="db/changelog/changes/005-provider-logo-avatar.sql" />
 </databaseChangeLog>
