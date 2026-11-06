@@ -1,8 +1,12 @@
 package com.petshop.backend.dto.request.content;
 
+import com.petshop.backend.i18n.TranslatableRequest;
+import io.swagger.v3.oas.annotations.media.Schema;
+import java.util.Map;
+
 import jakarta.validation.constraints.NotBlank;
 
-public class AdminServiceRequest {
+public class AdminServiceRequest implements TranslatableRequest {
 
     @NotBlank(message = "Title is required")
     private String title;
@@ -10,6 +14,9 @@ public class AdminServiceRequest {
     private String subtitle;
     private String imageUrl;
     private Boolean active = true;
+
+    @Schema(description = TRANSLATIONS_DOC + " Fields: title, subtitle")
+    private Map<String, Map<String, Object>> translations;
 
     public AdminServiceRequest() {}
 
@@ -31,4 +38,8 @@ public class AdminServiceRequest {
 
     public Boolean getActive() { return active; }
     public void setActive(Boolean active) { this.active = active; }
+
+    @Override
+    public Map<String, Map<String, Object>> getTranslations() { return translations; }
+    public void setTranslations(Map<String, Map<String, Object>> translations) { this.translations = translations; }
 }

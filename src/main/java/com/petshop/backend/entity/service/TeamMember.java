@@ -1,5 +1,7 @@
 package com.petshop.backend.entity.service;
 
+import com.petshop.backend.i18n.Translations;
+import com.petshop.backend.i18n.TranslationsConverter;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -38,6 +40,10 @@ public class TeamMember {
 
     private String avatar;
 
-    /** Shown on the public provider page; at most 4 per provider. */
     private Boolean featured;
+
+    @Convert(converter = TranslationsConverter.class)
+    @Column(columnDefinition = "TEXT")
+    @Builder.Default
+    private Translations translations = Translations.empty();
 }

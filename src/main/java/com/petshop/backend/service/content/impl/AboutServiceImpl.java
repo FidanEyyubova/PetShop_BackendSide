@@ -1,5 +1,8 @@
 package com.petshop.backend.service.content.impl;
 
+import com.petshop.backend.i18n.Localized;
+import com.petshop.backend.i18n.TranslatableFields;
+
 import com.petshop.backend.dto.request.content.AboutSectionRequest;
 import com.petshop.backend.dto.response.content.AboutSectionResponse;
 import com.petshop.backend.entity.content.AboutSection;
@@ -24,6 +27,7 @@ public class AboutServiceImpl implements AboutSectionService {
     public AboutSectionResponse createAboutSection(AboutSectionRequest request) {
         AboutSection section = new AboutSection();
         section.setTitle(request.getTitle());
+        section.setTranslations(section.getTranslations().mergedWith(request.getTranslations(), TranslatableFields.ABOUT));
         section.setSubtitle(request.getSubtitle());
         section.setImageUrl(request.getImageUrl());
         section.setDescription(request.getDescription());
@@ -52,6 +56,8 @@ public class AboutServiceImpl implements AboutSectionService {
                 .orElseThrow(() -> new ResourceNotFoundException("AboutSection", "id", id));
 
         section.setTitle(request.getTitle());
+
+        section.setTranslations(section.getTranslations().mergedWith(request.getTranslations(), TranslatableFields.ABOUT));
         section.setSubtitle(request.getSubtitle());
         section.setImageUrl(request.getImageUrl());
         section.setDescription(request.getDescription());
@@ -68,13 +74,16 @@ public class AboutServiceImpl implements AboutSectionService {
     }
 
     private AboutSectionResponse mapToResponse(AboutSection section) {
-        return new AboutSectionResponse(
+        Localized t = Localized.of(section.getTranslations());
+        AboutSectionResponse response = new AboutSectionResponse(
                 section.getId(),
-                section.getTitle(),
-                section.getSubtitle(),
+                t.text("title", section.getTitle()),
+                t.text("subtitle", section.getSubtitle()),
                 section.getImageUrl(),
-                section.getDescription(),
+                t.text("description", section.getDescription()),
                 section.getCreatedAt()
         );
+        response.setTranslations(Localized.editable(section.getTranslations(), "title", section.getTitle(), "subtitle", section.getSubtitle(), "description", section.getDescription()));
+        return response;
     }
 }

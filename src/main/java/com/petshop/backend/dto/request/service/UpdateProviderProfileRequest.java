@@ -1,5 +1,8 @@
 package com.petshop.backend.dto.request.service;
 
+import com.petshop.backend.i18n.TranslatableRequest;
+import java.util.Map;
+
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.petshop.backend.common.ValidationPatterns;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -8,9 +11,8 @@ import lombok.Data;
 
 import java.util.List;
 
-/** Center profile (provider settings tab). Partial update: null fields are left unchanged. */
 @Data
-public class UpdateProviderProfileRequest {
+public class UpdateProviderProfileRequest implements TranslatableRequest {
 
     @JsonAlias("name")
     @Size(min = 2, max = 150)
@@ -69,4 +71,7 @@ public class UpdateProviderProfileRequest {
 
     @Size(max = 20)
     private List<@Size(max = 50) String> tags;
+
+    @Schema(description = TRANSLATIONS_DOC + " Fields: bio, tags")
+    private Map<String, Map<String, Object>> translations;
 }

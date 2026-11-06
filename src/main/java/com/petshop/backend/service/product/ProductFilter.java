@@ -5,12 +5,6 @@ import com.petshop.backend.common.ProductSort;
 import java.math.BigDecimal;
 import java.util.Collection;
 
-/**
- * Normalised product query.
- *
- * @param categoryIds    null = no category filter; empty = nothing matches (unknown slug)
- * @param includeHidden  vendor/admin lists also show hidden products
- */
 public record ProductFilter(
         String q,
         Collection<Long> categoryIds,
@@ -27,6 +21,5 @@ public record ProductFilter(
         boolean includeHidden,
         ProductSort sort
 ) {
-    /** Facet dimensions that can be left out when computing counts. */
     public enum Dimension { CATEGORY, PET_TYPE, BRAND, PRICE }
 }

@@ -1,11 +1,18 @@
 package com.petshop.backend.dto.request.content;
 
-public class ContactInfoRequest {
+import com.petshop.backend.i18n.TranslatableRequest;
+import io.swagger.v3.oas.annotations.media.Schema;
+import java.util.Map;
+
+public class ContactInfoRequest implements TranslatableRequest {
     private String location;
     private String mail;
     private String phone;
     private String workingHours;
     private String locationMapUrl;
+
+    @Schema(description = TRANSLATIONS_DOC + " Fields: location, workingHours")
+    private Map<String, Map<String, Object>> translations;
 
     public ContactInfoRequest() {}
 
@@ -31,4 +38,8 @@ public class ContactInfoRequest {
 
     public String getLocationMapUrl() { return locationMapUrl; }
     public void setLocationMapUrl(String locationMapUrl) { this.locationMapUrl = locationMapUrl; }
+
+    @Override
+    public Map<String, Map<String, Object>> getTranslations() { return translations; }
+    public void setTranslations(Map<String, Map<String, Object>> translations) { this.translations = translations; }
 }

@@ -1,13 +1,16 @@
 package com.petshop.backend.dto.request.product;
 
+import com.petshop.backend.i18n.TranslatableRequest;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
+import java.util.Map;
+
 @Data
-public class CategoryRequest {
+public class CategoryRequest implements TranslatableRequest {
 
     @NotBlank(message = "Title is required")
     @Size(max = 100)
@@ -25,4 +28,7 @@ public class CategoryRequest {
 
     @Schema(description = "PRODUCT (default) or SERVICE", example = "PRODUCT")
     private String type;
+
+    @Schema(description = TRANSLATIONS_DOC + " Fields: title")
+    private Map<String, Map<String, Object>> translations;
 }

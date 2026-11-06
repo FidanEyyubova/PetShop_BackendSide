@@ -6,7 +6,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
 import lombok.Data;
 
-/** Service-provider sign-up; creates the user and its center profile. The account waits for admin approval. */
 @Data
 public class RegisterServiceProviderRequest {
 

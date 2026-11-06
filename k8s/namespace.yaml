@@ -4,3 +4,4 @@ metadata:
   name: petshop
   labels:
     app.kubernetes.io/part-of: petshop
+

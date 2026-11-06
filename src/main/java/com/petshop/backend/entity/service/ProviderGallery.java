@@ -1,5 +1,8 @@
 package com.petshop.backend.entity.service;
 
+import com.petshop.backend.i18n.Translations;
+import com.petshop.backend.i18n.TranslationsConverter;
+
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
@@ -19,6 +22,10 @@ public class ProviderGallery {
 
     private String title;
     private LocalDateTime createdAt;
+
+    @Convert(converter = TranslationsConverter.class)
+    @Column(columnDefinition = "TEXT")
+    private Translations translations = Translations.empty();
 
     public ProviderGallery() {}
 
@@ -49,4 +56,7 @@ public class ProviderGallery {
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+
+    public Translations getTranslations() { return translations == null ? Translations.empty() : translations; }
+    public void setTranslations(Translations translations) { this.translations = translations; }
 }

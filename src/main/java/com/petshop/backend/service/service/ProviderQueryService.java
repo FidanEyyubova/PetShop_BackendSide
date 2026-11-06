@@ -1,5 +1,7 @@
 package com.petshop.backend.service.service;
 
+import com.petshop.backend.common.Language;
+import com.petshop.backend.i18n.Localized;
 import com.petshop.backend.common.Roles;
 import com.petshop.backend.common.ServiceType;
 import com.petshop.backend.common.UserStatus;
@@ -23,7 +25,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.*;
 import java.util.stream.Collectors;
 
-/** Public provider listing, provider page and service categories. Only approved providers are shown. */
 @Service
 public class ProviderQueryService {
 
@@ -60,6 +61,8 @@ public class ProviderQueryService {
                         .type(t.name())
                         .name(t.getLabel())
                         .azName(t.getAzLabel())
+                        .ruName(t.getRuLabel())
+                        .label(t.label(Language.current()))
                         .providerCount(counts.getOrDefault(t.name(), 0L))
                         .build())
                 .toList();
@@ -106,10 +109,6 @@ public class ProviderQueryService {
         return PageResponse.of(result, content);
     }
 
-    /**
-     * Public page; 404 for unknown, deleted or not yet approved providers.
-     * {@code adminView}: admins also see providers waiting for approval (to review them) and the private fields.
-     */
     @Transactional(readOnly = true)
     public ProviderProfileResponse publicProfile(Long providerId, boolean adminView) {
         User user = userRepository.findById(providerId)
@@ -121,7 +120,6 @@ public class ProviderQueryService {
         return buildProfile(user, profile, adminView);
     }
 
-    /** Builds the full profile; {@code owner} adds private fields and shows hidden services and all team members. */
     @Transactional(readOnly = true)
     public ProviderProfileResponse buildProfile(User user, ServiceProviderProfile profile, boolean owner) {
         Long id = user.getId();
@@ -135,13 +133,14 @@ public class ProviderQueryService {
         }
         var min = support.priceMin(allServices);
         var max = support.priceMax(allServices);
+        Localized t = Localized.of(profile.getTranslations());
         return ProviderProfileResponse.builder()
                 .providerId(id)
                 .fullName(user.getFullName())
                 .centerName(profile.getCenterName())
                 .serviceType(profile.getServiceType())
                 .serviceSlug(ProviderSupport.slug(profile.getServiceType()))
-                .bio(profile.getBio())
+                .bio(t.text("bio", profile.getBio()))
                 .city(profile.getCity())
                 .district(profile.getDistrict())
                 .address(profile.getAddress())
@@ -154,7 +153,7 @@ public class ProviderQueryService {
                 .bannerUrl(profile.getBannerUrl())
                 .logoUrl(profile.getLogoUrl() != null ? profile.getLogoUrl() : user.getAvatarUrl())
                 .amenities(profile.getAmenities())
-                .tags(profile.getTags())
+                .tags(t.list("tags", profile.getTags()))
                 .rating(profile.getRating())
                 .reviewCount(profile.getReviewCount() == null ? 0 : profile.getReviewCount())
                 .priceMin(min)
@@ -171,13 +170,15 @@ public class ProviderQueryService {
                 .email(owner ? user.getEmail() : null)
                 .accountStatus(owner && user.getStatus() != null ? user.getStatus().name() : null)
                 .profileCompleteness(owner ? support.completeness(profile, schedules.size(), allServices.size()) : null)
+                .translations(owner ? Localized.editable(profile.getTranslations(), "bio", profile.getBio(), "tags", profile.getTags()) : null)
                 .build();
     }
 
     private ProviderSummaryResponse toSummary(ServiceProviderProfile p, List<PetService> services, List<Schedule> schedules) {
         var min = support.priceMin(services);
         var max = support.priceMax(services);
-        String bio = p.getBio();
+        Localized t = Localized.of(p.getTranslations());
+        String bio = t.text("bio", p.getBio());
         return ProviderSummaryResponse.builder()
                 .id(p.getProviderId())
                 .centerName(p.getCenterName())
@@ -199,7 +200,7 @@ public class ProviderQueryService {
                 .priceRange(ProviderSupport.priceLabel(min, max))
                 .isOpen(support.isOpenNow(schedules))
                 .workingHours(support.todayHours(schedules))
-                .tags(p.getTags())
+                .tags(t.list("tags", p.getTags()))
                 .build();
     }
 

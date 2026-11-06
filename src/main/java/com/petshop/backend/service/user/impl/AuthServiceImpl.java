@@ -95,13 +95,10 @@ public class AuthServiceImpl implements AuthService {
         this.properties = properties;
     }
 
-    // ---- sign in / sign up ------------------------------------------------------------------
-
     @Override
     @Transactional
     public AuthResponse login(LoginRequest request) {
         String email = normalizeEmail(request.getEmail());
-        // BadCredentialsException -> 401, DisabledException/LockedException -> 403 (GlobalExceptionHandler).
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(email, request.getPassword()));
         UserPrincipal principal = (UserPrincipal) authentication.getPrincipal();
@@ -110,10 +107,6 @@ public class AuthServiceImpl implements AuthService {
         return issueTokens(user, Boolean.TRUE.equals(request.getRememberMe()));
     }
 
-    /**
-     * Signs in with a Google ID token. Existing accounts (same email) are signed in; otherwise a buyer
-     * account without a password is created. Suspended, rejected or deleted accounts cannot sign in.
-     */
     @Override
     @Transactional
     public AuthResponse loginWithGoogle(GoogleLoginRequest request) {
@@ -219,8 +212,6 @@ public class AuthServiceImpl implements AuthService {
         return issueTokens(user, false);
     }
 
-    // ---- tokens --------------------------------------------------------------------------------
-
     @Override
     @Transactional(noRollbackFor = UnauthorizedException.class)
     public AuthResponse refreshToken(RefreshTokenRequest request) {
@@ -246,8 +237,6 @@ public class AuthServiceImpl implements AuthService {
             refreshTokenService.revoke(request.getRefreshToken());
         }
     }
-
-    // ---- profile -------------------------------------------------------------------------------
 
     @Override
     @Transactional(readOnly = true)
@@ -281,14 +270,10 @@ public class AuthServiceImpl implements AuthService {
         }
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
         userRepository.save(user);
-        // Other sessions must sign in again with the new password.
         refreshTokenService.revokeAll(user.getId());
         sendPasswordChangedEmail(user);
     }
 
-    // ---- password reset ------------------------------------------------------------------------
-
-    /** Always succeeds so the endpoint does not reveal which emails are registered. */
     @Override
     @Transactional
     public void forgotPassword(ForgotPasswordRequest request) {
@@ -346,8 +331,6 @@ public class AuthServiceImpl implements AuthService {
                         + "If you did not make this change, reset your password again right away and contact our support team.\n\n"
                         + properties.getFrontendUrl());
     }
-
-    // ---- helpers -------------------------------------------------------------------------------
 
     private AuthResponse issueTokens(User user, boolean rememberMe) {
         return buildAuthResponse(user, refreshTokenService.issue(user.getId(), rememberMe));

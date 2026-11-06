@@ -1,5 +1,7 @@
 package com.petshop.backend.dto.response.content;
 
+import java.util.Map;
+
 import java.time.LocalDateTime;
 
 public class ContactInfoResponse {
@@ -10,6 +12,8 @@ public class ContactInfoResponse {
     private String workingHours;
     private String locationMapUrl;
     private LocalDateTime updatedAt;
+
+    private Map<String, Map<String, Object>> translations;
 
     public ContactInfoResponse() {}
 
@@ -43,4 +47,7 @@ public class ContactInfoResponse {
 
     public LocalDateTime getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+
+    public Map<String, Map<String, Object>> getTranslations() { return translations; }
+    public void setTranslations(Map<String, Map<String, Object>> translations) { this.translations = translations; }
 }

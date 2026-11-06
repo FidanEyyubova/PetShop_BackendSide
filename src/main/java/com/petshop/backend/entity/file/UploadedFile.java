@@ -21,7 +21,6 @@ public class UploadedFile {
     @Column(name = "owner_id", nullable = false)
     private Long ownerId;
 
-    /** Random object name, e.g. 3f2a...e1.webp */
     @Column(name = "storage_key", nullable = false, unique = true)
     private String storageKey;
 

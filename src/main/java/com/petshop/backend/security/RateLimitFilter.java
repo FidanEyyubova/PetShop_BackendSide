@@ -13,11 +13,6 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * Fixed-window, per-IP rate limiting for abuse-prone public endpoints
- * (login, registration, password reset, contact form, newsletter, reviews, provider events).
- * In-memory: limits apply per application instance.
- */
 @Component
 public class RateLimitFilter extends OncePerRequestFilter {
 
@@ -80,7 +75,6 @@ public class RateLimitFilter extends OncePerRequestFilter {
     }
 
     private String clientIp(HttpServletRequest request) {
-        // server.forward-headers-strategy=framework makes getRemoteAddr honour X-Forwarded-For behind the proxy.
         return request.getRemoteAddr();
     }
 

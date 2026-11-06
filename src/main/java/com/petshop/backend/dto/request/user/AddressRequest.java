@@ -5,10 +5,6 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
-/**
- * Buyer address. title, city, district and street are required (as in the frontend form).
- * fullAddress is optional and is built from the parts when missing.
- */
 @Data
 public class AddressRequest {
 

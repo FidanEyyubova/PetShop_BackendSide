@@ -1,5 +1,7 @@
 package com.petshop.backend.service.content.impl;
 
+import com.petshop.backend.i18n.Localized;
+import com.petshop.backend.i18n.TranslatableFields;
 import com.petshop.backend.dto.request.content.BlogSubCategoryRequest;
 import com.petshop.backend.dto.response.content.BlogSubCategoryResponse;
 import com.petshop.backend.entity.content.BlogSubCategory;
@@ -16,7 +18,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/** Blog categories with post counts. */
 @Service
 public class BlogSubCategoryServiceImpl implements BlogSubCategoryService {
 
@@ -76,6 +77,7 @@ public class BlogSubCategoryServiceImpl implements BlogSubCategoryService {
 
     private void apply(BlogSubCategory c, BlogSubCategoryRequest r) {
         c.setTitle(r.getTitle().trim());
+        c.setTranslations(c.getTranslations().mergedWith(r.getTranslations(), TranslatableFields.BLOG_CATEGORY));
         String wanted = r.getSlug() != null && !r.getSlug().isBlank() ? r.getSlug() : r.getTitle();
         if (c.getSlug() == null || r.getSlug() != null) {
             String current = c.getSlug();
@@ -85,6 +87,12 @@ public class BlogSubCategoryServiceImpl implements BlogSubCategoryService {
 
     private static BlogSubCategoryResponse toResponse(BlogSubCategory c, long count) {
         return BlogSubCategoryResponse.builder()
-                .id(c.getId()).title(c.getTitle()).slug(c.getSlug()).count(count).createdAt(c.getCreatedAt()).build();
+                .id(c.getId()).title(categoryTitle(c)).slug(c.getSlug()).count(count).createdAt(c.getCreatedAt())
+                .translations(Localized.editable(c.getTranslations(), "title", c.getTitle()))
+                .build();
+    }
+
+    static String categoryTitle(BlogSubCategory c) {
+        return Localized.of(c.getTranslations()).text("title", c.getTitle());
     }
 }

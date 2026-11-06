@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonAlias;
 import com.petshop.backend.common.ValidationPatterns;
 import com.petshop.backend.dto.common.ProductIngredients;
 import com.petshop.backend.dto.common.ProductUsageGuide;
+import com.petshop.backend.i18n.TranslatableRequest;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
@@ -12,10 +13,10 @@ import lombok.Data;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
-/** Create or fully replace a product. Vendors always write into their own store. */
 @Data
-public class CreateProductRequest {
+public class CreateProductRequest implements TranslatableRequest {
 
     @NotBlank(message = "Product title is required")
     @Size(max = 200)
@@ -102,4 +103,7 @@ public class CreateProductRequest {
 
     @Schema(description = "false = hidden from the storefront; default true")
     private Boolean isActive;
+
+    @Schema(description = TRANSLATIONS_DOC + " Fields: title, description, badges, flavors, keyBenefits, guarantees, ingredients, nutritionInfo, usageGuide")
+    private Map<String, Map<String, Object>> translations;
 }

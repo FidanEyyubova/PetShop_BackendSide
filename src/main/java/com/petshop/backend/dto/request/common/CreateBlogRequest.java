@@ -1,5 +1,8 @@
 package com.petshop.backend.dto.request.common;
 
+import com.petshop.backend.i18n.TranslatableRequest;
+import java.util.Map;
+
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.petshop.backend.common.ValidationPatterns;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -12,7 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Data
-public class CreateBlogRequest {
+public class CreateBlogRequest implements TranslatableRequest {
 
     @NotBlank(message = "Title is required")
     @Size(max = 255)
@@ -42,4 +45,7 @@ public class CreateBlogRequest {
     private Long categoryId;
 
     private String categorySlug;
+
+    @Schema(description = TRANSLATIONS_DOC + " Fields: title, excerpt, content, tags, readTime")
+    private Map<String, Map<String, Object>> translations;
 }

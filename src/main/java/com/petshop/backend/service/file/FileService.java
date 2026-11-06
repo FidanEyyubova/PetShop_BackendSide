@@ -16,10 +16,6 @@ import java.io.IOException;
 import java.util.Optional;
 import java.util.UUID;
 
-/**
- * Validates and stores images. The MIME type is detected from the file's magic bytes, not from the
- * client-supplied Content-Type; only PNG, JPEG and WebP up to 5 MB are accepted (SVG is rejected).
- */
 @Service
 public class FileService {
 
@@ -75,7 +71,6 @@ public class FileService {
         repository.delete(file);
     }
 
-    /** Bytes and content type for locally stored files. */
     @Transactional(readOnly = true)
     public Optional<StoredFile> load(String key) {
         if (key == null || !key.matches("[A-Za-z0-9._-]+")) return Optional.empty();

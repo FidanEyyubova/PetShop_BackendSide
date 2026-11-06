@@ -26,7 +26,6 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
 
     boolean existsByStoreIdAndSkuIgnoreCaseAndDeletedAtIsNullAndIdNot(Long storeId, String sku, Long id);
 
-    /** Locks the rows for the stock check-and-decrement during checkout. */
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT p FROM Product p WHERE p.id IN :ids ORDER BY p.id")
     List<Product> findAllByIdForUpdate(@Param("ids") Collection<Long> ids);
@@ -35,7 +34,6 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
            "ORDER BY p.soldCount DESC, p.rating DESC")
     List<Long> findBestSellerIds(Pageable pageable);
 
-    /** Same category first, then same pet type. Pass -1 / "" when the product has no category / pet type. */
     @Query("SELECT p FROM Product p WHERE p.deletedAt IS NULL AND p.isActive = true AND p.id <> :id " +
            "AND (p.categoryId = :categoryId OR p.petType = :petType) " +
            "ORDER BY CASE WHEN p.categoryId = :categoryId THEN 0 ELSE 1 END, p.soldCount DESC, p.createdAt DESC")

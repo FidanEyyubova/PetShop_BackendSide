@@ -2,16 +2,17 @@ package com.petshop.backend.dto.request.product;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.petshop.backend.common.ValidationPatterns;
+import com.petshop.backend.i18n.TranslatableRequest;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
 import lombok.Data;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
-/** Vendor-editable public store profile. Platform fields (verified, rating, responseRate) are not accepted. */
 @Data
-public class CreateStoreRequest {
+public class CreateStoreRequest implements TranslatableRequest {
 
     @NotBlank(message = "Store name is required")
     @Size(min = 2, max = 150)
@@ -83,4 +84,7 @@ public class CreateStoreRequest {
 
     @Pattern(regexp = ValidationPatterns.VOEN, message = ValidationPatterns.VOEN_MESSAGE)
     private String voen;
+
+    @Schema(description = TRANSLATIONS_DOC + " Fields: tagline, description, deliveryInfo, features")
+    private Map<String, Map<String, Object>> translations;
 }

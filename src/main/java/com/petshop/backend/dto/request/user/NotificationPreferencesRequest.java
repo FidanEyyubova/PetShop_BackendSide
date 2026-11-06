@@ -3,7 +3,6 @@ package com.petshop.backend.dto.request.user;
 import com.fasterxml.jackson.annotation.JsonAlias;
 import lombok.Data;
 
-/** Partial update of the buyer's notification toggles (order / promo / blog). */
 @Data
 public class NotificationPreferencesRequest {
 

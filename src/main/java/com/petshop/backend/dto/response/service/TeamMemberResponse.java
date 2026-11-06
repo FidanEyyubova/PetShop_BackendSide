@@ -1,5 +1,8 @@
 package com.petshop.backend.dto.response.service;
 
+import java.util.Map;
+import io.swagger.v3.oas.annotations.media.Schema;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -19,4 +22,7 @@ public class TeamMemberResponse {
     private String note;
     private String avatar;
     private Boolean featured;
+
+    @Schema(description = "az / en / ru versions of the text fields, for edit forms")
+    private Map<String, Map<String, Object>> translations;
 }

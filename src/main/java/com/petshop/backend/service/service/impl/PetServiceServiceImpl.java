@@ -26,7 +26,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-/** Public, read-only list of active services of approved providers. Providers manage theirs via the provider API. */
 @Service
 public class PetServiceServiceImpl implements PetServiceService {
 

@@ -3,10 +3,6 @@ package com.petshop.backend.common;
 import java.util.EnumSet;
 import java.util.Set;
 
-/**
- * Order lifecycle. The vendor dashboard calls PENDING "new".
- * PENDING -> PROCESSING -> SHIPPING -> DELIVERED, and CANCELLED from PENDING or PROCESSING.
- */
 public enum OrderStatus {
     PENDING, PROCESSING, SHIPPING, DELIVERED, CANCELLED;
 
@@ -26,7 +22,6 @@ public enum OrderStatus {
         return this == PENDING || this == PROCESSING;
     }
 
-    /** Accepts enum names in any case plus frontend aliases ("new", "shipped", "completed"). */
     public static OrderStatus parse(String value) {
         if (value == null || value.isBlank()) return null;
         String v = value.trim().toUpperCase();

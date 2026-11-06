@@ -15,9 +15,6 @@ import org.springframework.stereotype.Component;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-/**
- * Seeds the admin account (only from ADMIN_EMAIL / ADMIN_PASSWORD, never hardcoded) and demo coupons.
- */
 @Component
 public class DataInitializer implements CommandLineRunner {
 

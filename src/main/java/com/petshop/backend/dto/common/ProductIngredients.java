@@ -11,7 +11,6 @@ import lombok.NoArgsConstructor;
 import java.util.ArrayList;
 import java.util.List;
 
-/** "Ingredients" tab of the product page. */
 @Data
 @Builder
 @NoArgsConstructor

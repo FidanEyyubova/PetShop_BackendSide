@@ -1,6 +1,5 @@
 package com.petshop.backend.common;
 
-/** Whitelisted product sort keys; anything else is rejected with 400. */
 public enum ProductSort {
     FEATURED, NEWEST, PRICE_LOW, PRICE_HIGH, RATING, NAME_AZ, NAME_ZA, BEST_SELLING;
 

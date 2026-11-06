@@ -105,7 +105,7 @@ public class ProductController {
 
     @PostMapping
     @PreAuthorize("hasAnyRole('" + Roles.VENDOR + "','" + Roles.ADMIN + "')")
-    @Operation(summary = "Create a product", 
+    @Operation(summary = "Create a product",
             description = "Upload images via POST /api/v1/files first. Sellers waiting for approval create hidden products.")
     public ResponseEntity<ApiResponse<ProductResponse>> create(@Valid @RequestBody CreateProductRequest request,
                                                                @AuthenticationPrincipal UserPrincipal currentUser) {

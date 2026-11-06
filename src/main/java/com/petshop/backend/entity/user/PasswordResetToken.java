@@ -31,7 +31,6 @@ public class PasswordResetToken {
     @Builder.Default
     private Boolean used = false;
 
-    /** Failed verification attempts; the code is invalidated after 5. */
     @Column(nullable = false)
     @Builder.Default
     private Integer attempts = 0;

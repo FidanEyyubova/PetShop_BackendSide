@@ -1,6 +1,3 @@
-# PetShop backend: Deployment, uploads volume and Service.
-# Build the image first:  docker build -t petshop-backend:latest .
-# Liquibase applies the database migrations automatically when the pod starts.
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -23,14 +20,12 @@ metadata:
     app.kubernetes.io/name: petshop-backend
     app.kubernetes.io/part-of: petshop
 spec:
-  # One replica while images are stored on the local volume (STORAGE_TYPE=local).
-  # With STORAGE_TYPE=s3 the backend is stateless and can be scaled up.
   replicas: 1
   selector:
     matchLabels:
       app.kubernetes.io/name: petshop-backend
   strategy:
-    type: Recreate   # the uploads volume is ReadWriteOnce
+    type: Recreate
   template:
     metadata:
       labels:
@@ -40,7 +35,7 @@ spec:
       securityContext:
         runAsNonRoot: true
         runAsUser: 10001
-        fsGroup: 10001   # lets the app write to the uploads volume
+        fsGroup: 10001
       containers:
         - name: backend
           image: petshop-backend:latest
@@ -102,18 +97,18 @@ spec:
                 secretKeyRef:
                   name: petshop-secrets
                   key: GOOGLE_CLIENT_ID
-          startupProbe:          # gives Liquibase and Spring time to start
+          startupProbe:
             httpGet:
               path: /actuator/health/liveness
               port: http
             periodSeconds: 5
             failureThreshold: 36
-          readinessProbe:        # receives traffic only when the database is reachable
+          readinessProbe:
             httpGet:
               path: /actuator/health/readiness
               port: http
             periodSeconds: 10
-          livenessProbe:         # restarted if the application hangs
+          livenessProbe:
             httpGet:
               path: /actuator/health/liveness
               port: http
@@ -150,3 +145,4 @@ spec:
     - name: http
       port: 80
       targetPort: http
+

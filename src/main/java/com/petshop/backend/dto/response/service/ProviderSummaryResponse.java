@@ -9,7 +9,6 @@ import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 import java.util.List;
 
-/** Provider card on /services. */
 @Data
 @Builder
 @NoArgsConstructor

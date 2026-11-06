@@ -1,5 +1,8 @@
 package com.petshop.backend.entity.content;
 
+import com.petshop.backend.i18n.Translations;
+import com.petshop.backend.i18n.TranslationsConverter;
+
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
@@ -24,6 +27,10 @@ public class AboutSection {
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
+
+    @Convert(converter = TranslationsConverter.class)
+    @Column(columnDefinition = "TEXT")
+    private Translations translations = Translations.empty();
 
     public AboutSection() {}
 
@@ -58,4 +65,7 @@ public class AboutSection {
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+
+    public Translations getTranslations() { return translations == null ? Translations.empty() : translations; }
+    public void setTranslations(Translations translations) { this.translations = translations; }
 }

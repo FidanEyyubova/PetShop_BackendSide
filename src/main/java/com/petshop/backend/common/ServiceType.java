@@ -1,21 +1,30 @@
 package com.petshop.backend.common;
 
-/** Service categories shown on /services. */
 public enum ServiceType {
-    GROOMING("Grooming", "Qulluq"),
-    VETERINARY("Veterinary", "Baytarlıq"),
-    TRAINING("Training", "Təlim");
+    GROOMING("Grooming", "Qulluq", "Груминг"),
+    VETERINARY("Veterinary", "Baytarlıq", "Ветеринария"),
+    TRAINING("Training", "Təlim", "Дрессировка");
 
     private final String label;
     private final String azLabel;
+    private final String ruLabel;
 
-    ServiceType(String label, String azLabel) {
+    ServiceType(String label, String azLabel, String ruLabel) {
         this.label = label;
         this.azLabel = azLabel;
+        this.ruLabel = ruLabel;
     }
 
     public String getLabel() { return label; }
     public String getAzLabel() { return azLabel; }
+    public String getRuLabel() { return ruLabel; }
+    public String label(Language language) {
+        return switch (language) {
+            case AZ -> azLabel;
+            case RU -> ruLabel;
+            case EN -> label;
+        };
+    }
     public String getSlug() { return name().toLowerCase(); }
 
     public static ServiceType parse(String value) {

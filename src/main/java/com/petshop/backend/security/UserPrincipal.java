@@ -71,7 +71,6 @@ public class UserPrincipal implements UserDetails {
     @Override
     public boolean isAccountNonExpired() { return true; }
 
-    /** Suspended accounts cannot sign in. Pending sellers can sign in to finish their profile. */
     @Override
     public boolean isAccountNonLocked() { return status != UserStatus.SUSPENDED && status != UserStatus.REJECTED; }
 

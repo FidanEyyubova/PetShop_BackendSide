@@ -7,7 +7,9 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 import java.util.List;
+import java.util.Map;
 
 @Data
 @Builder
@@ -26,4 +28,5 @@ public class CategoryResponse {
     private Long productCount;
     private List<SubCategoryResponse> subCategories;
     private LocalDateTime createdAt;
+    private Map<String, Map<String, Object>> translations;
 }

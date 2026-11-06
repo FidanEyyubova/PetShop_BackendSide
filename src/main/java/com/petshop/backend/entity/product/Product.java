@@ -1,5 +1,7 @@
 package com.petshop.backend.entity.product;
 
+import com.petshop.backend.i18n.Translations;
+import com.petshop.backend.i18n.TranslationsConverter;
 import com.petshop.backend.util.StringListConverter;
 import jakarta.persistence.*;
 import lombok.*;
@@ -22,7 +24,6 @@ public class Product {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    /** Owner (vendor user id). */
     @Column(name = "vendor_id")
     private Long vendorId;
 
@@ -42,7 +43,6 @@ public class Product {
     private String sku;
     private String brand;
 
-    /** Canonical pet type id (dogs, cats, birds, fish, small-pets, reptiles). */
     @Column(name = "pet_type")
     private String petType;
 
@@ -58,7 +58,6 @@ public class Product {
     @Column(columnDefinition = "TEXT")
     private String description;
 
-    /** Ordered gallery; the first image is the cover. */
     @Convert(converter = StringListConverter.class)
     @Column(name = "images", columnDefinition = "TEXT")
     @Builder.Default
@@ -69,11 +68,9 @@ public class Product {
     @Column(name = "review_count")
     private Integer reviewCount;
 
-    /** Units sold in non-cancelled orders; drives best sellers. */
     @Column(name = "sold_count")
     private Integer soldCount;
 
-    /** false = hidden by the vendor. */
     @Column(name = "is_active")
     private Boolean isActive;
 
@@ -108,17 +105,23 @@ public class Product {
     @Builder.Default
     private List<String> guarantees = new ArrayList<>();
 
-    /** JSON: {freeFrom[], nutritionValues[{label,value}], activeIngredients}. */
     @Column(columnDefinition = "TEXT")
     private String ingredients;
 
-    /** Legacy free-text nutrition info. */
     @Column(name = "nutrition_info", columnDefinition = "TEXT")
     private String nutritionInfo;
 
-    /** JSON: {portionTable[{weight,portion}], frequency}. */
     @Column(name = "usage_guide", columnDefinition = "TEXT")
     private String usageGuide;
+
+    @Convert(converter = TranslationsConverter.class)
+    @Column(columnDefinition = "TEXT")
+    @Builder.Default
+    private Translations translations = Translations.empty();
+
+    @Column(name = "translations", columnDefinition = "TEXT", insertable = false, updatable = false)
+    @Setter(AccessLevel.NONE)
+    private String translationsText;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
@@ -126,7 +129,6 @@ public class Product {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    /** Soft delete; deleted products stay referenced by orders. */
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
 

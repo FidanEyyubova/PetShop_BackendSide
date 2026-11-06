@@ -23,13 +23,6 @@ import java.sql.SQLException;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
-/**
- * Base class for integration tests: the full Spring context, Liquibase migrations and a real PostgreSQL database.
- * <p>
- * With Docker available, a throw-away PostgreSQL container is started (Testcontainers). Without Docker, the tests
- * use a separate local database, {@code petshop_test} by default (created if missing), configured through
- * TEST_DB_URL, TEST_DB_USERNAME and TEST_DB_PASSWORD. The application database is never touched.
- */
 @SpringBootTest
 @AutoConfigureMockMvc
 public abstract class AbstractIntegrationTest {
@@ -46,7 +39,7 @@ public abstract class AbstractIntegrationTest {
     static {
         if (DockerClientFactory.instance().isDockerAvailable()) {
             PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:16-alpine");
-            postgres.start(); // shared by all test classes; stopped when the JVM exits
+            postgres.start();
             DB_URL = postgres.getJdbcUrl();
             DB_USERNAME = postgres.getUsername();
             DB_PASSWORD = postgres.getPassword();
@@ -77,8 +70,6 @@ public abstract class AbstractIntegrationTest {
     @Autowired
     protected ObjectMapper json;
 
-    // ---- HTTP helpers ------------------------------------------------------------------------------
-
     protected Response get(String url, String token) throws Exception {
         return perform(MockMvcRequestBuilders.get(url), null, token);
     }
@@ -108,7 +99,6 @@ public abstract class AbstractIntegrationTest {
         return new Response(result.getResponse().getStatus(), content.isBlank() ? json.nullNode() : json.readTree(content));
     }
 
-    /** Status code and parsed JSON body of a response. */
     protected record Response(int status, JsonNode body) {
         public JsonNode data() {
             return body.path("data");
@@ -124,9 +114,6 @@ public abstract class AbstractIntegrationTest {
         }
     }
 
-    // ---- domain helpers ----------------------------------------------------------------------------
-
-    /** A unique email per call, so tests never collide with each other or with earlier runs. */
     protected static String uniqueEmail(String prefix) {
         return prefix + "." + SEQUENCE.incrementAndGet() + "@petshop.test";
     }
@@ -161,7 +148,6 @@ public abstract class AbstractIntegrationTest {
         return login(ADMIN_EMAIL, ADMIN_PASSWORD);
     }
 
-    /** Creates a product category as admin and returns its id. */
     protected long createCategory() throws Exception {
         Response category = post("/api/v1/admin/categories",
                 Map.of("title", "Category " + SEQUENCE.incrementAndGet()), adminToken());
@@ -172,8 +158,6 @@ public abstract class AbstractIntegrationTest {
     protected Response setUserStatus(long userId, String status) throws Exception {
         return patch("/api/v1/admin/users/" + userId + "/status", Map.of("status", status), adminToken());
     }
-
-    // ---- local database bootstrap ------------------------------------------------------------------
 
     private static String env(String name, String fallback) {
         String value = System.getenv(name);

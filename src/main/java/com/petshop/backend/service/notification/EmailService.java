@@ -19,12 +19,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Sends emails through the Brevo HTTPS API when BREVO_API_KEY is set, otherwise through SMTP when MAIL_HOST is set.
- * The HTTPS route exists because some hosts (e.g. Railway Free / Trial / Hobby) block outbound SMTP ports.
- * Every message carries a plain-text and an HTML part plus a sender display name, which spam filters
- * rate better than bare text. With neither configured the message is not delivered and only a log line is written.
- */
 @Service
 public class EmailService {
 
@@ -36,7 +30,6 @@ public class EmailService {
     private final String from;
     private final String fromName;
     private final String brevoApiKey;
-    /** Brevo only accepts a sender address verified in the Brevo account (MAIL_FROM). */
     private final String brevoFrom;
     private final RestClient brevo = RestClient.create(BREVO_API_URL);
 
@@ -47,7 +40,6 @@ public class EmailService {
         this.mailSender = mailSender;
         this.host = host;
         String configuredFrom = properties.getMail().getFrom();
-        // The SMTP account is the safest sender: Gmail rewrites or flags a From address it does not own.
         this.from = username != null && !username.isBlank() ? username.trim()
                 : configuredFrom == null ? "" : configuredFrom.trim();
         this.fromName = properties.getMail().getFromName();
@@ -78,7 +70,6 @@ public class EmailService {
         }
     }
 
-    /** POST https://api.brevo.com/v3/smtp/email — plain HTTPS (port 443), so it works where SMTP ports are blocked. */
     private void sendViaBrevo(String to, String subject, String body) {
         try {
             Map<String, Object> payload = Map.of(
@@ -119,7 +110,6 @@ public class EmailService {
         }
     }
 
-    /** Wraps the plain-text body in a simple, branded HTML layout. */
     private String toHtml(String subject, String body) {
         String content = HtmlUtils.htmlEscape(body).replace("\n", "<br>");
         return """

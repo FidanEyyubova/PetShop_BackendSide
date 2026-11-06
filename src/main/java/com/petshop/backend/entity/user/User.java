@@ -22,7 +22,6 @@ public class User {
     @Column(name = "full_name", nullable = false)
     private String fullName;
 
-    /** Always stored lower-case. */
     @Column(nullable = false, unique = true)
     private String email;
 
@@ -37,7 +36,6 @@ public class User {
     @Column(name = "city_address")
     private String cityAddress;
 
-    /** ROLE_BUYER, ROLE_VENDOR, ROLE_SERVICE_PROVIDER or ROLE_ADMIN. */
     @Column(nullable = false)
     private String role;
 

@@ -16,11 +16,6 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import java.net.URI;
 import java.util.Optional;
 
-/**
- * S3-compatible object storage (AWS S3, Cloudflare R2, MinIO, DigitalOcean Spaces).
- * Enable with STORAGE_TYPE=s3 plus S3_BUCKET, S3_ACCESS_KEY, S3_SECRET_KEY and, for non-AWS, S3_ENDPOINT.
- * STORAGE_PUBLIC_BASE_URL must point at the public bucket / CDN host.
- */
 @Service
 @ConditionalOnProperty(prefix = "app.storage", name = "type", havingValue = "s3")
 public class S3StorageService implements StorageService {

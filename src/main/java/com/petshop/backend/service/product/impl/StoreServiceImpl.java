@@ -1,5 +1,7 @@
 package com.petshop.backend.service.product.impl;
 
+import com.petshop.backend.i18n.Localized;
+import com.petshop.backend.i18n.TranslatableFields;
 import com.petshop.backend.dto.request.product.CreateStoreRequest;
 import com.petshop.backend.dto.response.common.PageResponse;
 import com.petshop.backend.dto.response.product.StoreResponse;
@@ -101,7 +103,6 @@ public class StoreServiceImpl implements StoreService {
     public PageResponse<StoreResponse> getAllStores(String q, String city, int page, int size) {
         Specification<Store> spec = (root, query, cb) -> {
             List<Predicate> p = new ArrayList<>();
-            // Stores of deleted accounts are not listed
             Subquery<Long> liveOwners = query.subquery(Long.class);
             Root<User> owner = liveOwners.from(User.class);
             liveOwners.select(owner.get("id")).where(cb.isNull(owner.get("deletedAt")));
@@ -162,18 +163,20 @@ public class StoreServiceImpl implements StoreService {
         store.setFeatures(r.getFeatures() == null ? new ArrayList<>()
                 : new ArrayList<>(r.getFeatures().stream().filter(Objects::nonNull).map(String::trim).filter(s -> !s.isEmpty()).toList()));
         if (r.getVoen() != null) store.setVoen(blank(r.getVoen()));
+        store.setTranslations(store.getTranslations().mergedWith(r.getTranslations(), TranslatableFields.STORE));
     }
 
     private StoreResponse toResponse(Store s, boolean includePrivate) {
+        Localized t = Localized.of(s.getTranslations());
         return StoreResponse.builder()
                 .id(s.getId())
                 .ownerId(s.getOwnerId())
                 .name(s.getName())
                 .slug(s.getSlug())
-                .tagline(s.getTagline())
+                .tagline(t.text("tagline", s.getTagline()))
                 .logoUrl(s.getLogoUrl())
                 .bannerUrl(s.getBannerUrl())
-                .description(s.getDescription())
+                .description(t.text("description", s.getDescription()))
                 .phone(s.getPhone())
                 .altPhone(s.getAltPhone())
                 .whatsapp(s.getWhatsapp())
@@ -186,16 +189,19 @@ public class StoreServiceImpl implements StoreService {
                 .coords(s.getLatitude() == null || s.getLongitude() == null ? null
                         : new StoreResponse.Coords(s.getLatitude(), s.getLongitude()))
                 .workingHours(s.getWorkingHours())
-                .deliveryInfo(s.getDeliveryInfo())
-                .features(s.getFeatures())
+                .deliveryInfo(t.text("deliveryInfo", s.getDeliveryInfo()))
+                .features(t.list("features", s.getFeatures()))
                 .verified(Boolean.TRUE.equals(s.getVerified()))
-                .badgeText(s.getBadgeText())
+                .badgeText(t.text("badgeText", s.getBadgeText()))
                 .responseRate(s.getResponseRate())
                 .rating(s.getRating())
                 .reviewCount(s.getReviewCount() == null ? 0 : s.getReviewCount())
                 .productCount(productRepository.countByStoreIdAndDeletedAtIsNullAndIsActiveTrue(s.getId()))
                 .joinedDate(s.getCreatedAt())
                 .voen(includePrivate ? s.getVoen() : null)
+                .translations(Localized.editable(s.getTranslations(), "tagline", s.getTagline(),
+                        "description", s.getDescription(),
+                        "deliveryInfo", s.getDeliveryInfo(), "features", s.getFeatures(), "badgeText", s.getBadgeText()))
                 .build();
     }
 

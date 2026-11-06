@@ -210,4 +210,19 @@ Lists are paged with `content`, `pageNumber`, `pageSize`, `totalElements`, `tota
 | `409` | Conflict: duplicate, not enough stock |
 | `429` | Too many requests |
 
+### Languages (az / en / ru)
+
+Azerbaijani is the main language. Send `?lang=en|ru|az` or an `Accept-Language` header; without either the API answers in Azerbaijani.
+
+- **Content** entered by admins, vendors and providers (products, categories, stores, blog, site sections, services, team, gallery) is returned in the requested language. A field with no translation falls back to the Azerbaijani text.
+- **Writing:** the plain fields carry the Azerbaijani text, and `translations` carries the other two languages:
+
+  ```json
+  { "title": "İt yemi", "translations": { "en": { "title": "Dog food" }, "ru": { "title": "Корм для собак" } } }
+  ```
+
+  On an update, a language left out of `translations` keeps its stored text; send `"ru": {}` to clear it.
+- **Edit forms:** detail responses include `translations` with all three languages (`az`, `en`, `ru`).
+- **Messages:** error and validation messages, pet type / service type labels (`label`) and dashboard chart labels follow the requested language.
+
 The full, interactive reference is in Swagger UI; exported specs are in [`docs/openapi.yaml`](docs/openapi.yaml) and [`docs/openapi.json`](docs/openapi.json).

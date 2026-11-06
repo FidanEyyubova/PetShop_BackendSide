@@ -3,7 +3,6 @@ package com.petshop.backend.common;
 public enum PaymentMethod {
     CARD_ONLINE, CASH_ON_DELIVERY;
 
-    /** Accepts enum names and the frontend values cardOnline, online, cashOnDelivery, cash. */
     public static PaymentMethod parse(String value) {
         if (value == null || value.isBlank()) return CASH_ON_DELIVERY;
         String v = value.trim().replace("-", "_").replace(" ", "_").toUpperCase();

@@ -1,6 +1,8 @@
 package com.petshop.backend.entity.service;
 
 import com.petshop.backend.util.StringListConverter;
+import com.petshop.backend.i18n.Translations;
+import com.petshop.backend.i18n.TranslationsConverter;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -28,7 +30,6 @@ public class ServiceProviderProfile {
     @Column(name = "center_name")
     private String centerName;
 
-    /** GROOMING, VETERINARY or TRAINING. */
     @Column(name = "service_type")
     private String serviceType;
 
@@ -81,6 +82,11 @@ public class ServiceProviderProfile {
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    @Convert(converter = TranslationsConverter.class)
+    @Column(columnDefinition = "TEXT")
+    @Builder.Default
+    private Translations translations = Translations.empty();
 
     @PrePersist
     @PreUpdate

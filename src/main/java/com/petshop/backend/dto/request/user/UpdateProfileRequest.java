@@ -7,7 +7,6 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
-/** Partial update: null fields are left unchanged. Email cannot be changed here. */
 @Data
 public class UpdateProfileRequest {
 

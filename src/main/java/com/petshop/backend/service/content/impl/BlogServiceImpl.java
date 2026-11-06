@@ -1,5 +1,8 @@
 package com.petshop.backend.service.content.impl;
 
+import com.petshop.backend.common.Language;
+import com.petshop.backend.i18n.Localized;
+import com.petshop.backend.i18n.TranslatableFields;
 import com.petshop.backend.dto.request.common.CreateBlogRequest;
 import com.petshop.backend.dto.response.common.BlogResponse;
 import com.petshop.backend.dto.response.common.PageResponse;
@@ -30,6 +33,7 @@ import java.util.stream.Collectors;
 public class BlogServiceImpl implements BlogService {
 
     private static final int WORDS_PER_MINUTE = 200;
+    private static final java.util.regex.Pattern AUTO_READ_TIME = java.util.regex.Pattern.compile("^\\d+ (min read|dəq oxu|мин чтения)$");
 
     private final BlogRepository blogRepository;
     private final BlogSubCategoryRepository categoryRepository;
@@ -76,7 +80,6 @@ public class BlogServiceImpl implements BlogService {
         int safe = Math.min(Math.max(limit, 1), 12);
         List<Blog> related = new ArrayList<>(blogRepository.findRelated(id, blog.getCategoryId(), PageRequest.of(0, safe)));
         if (related.size() < safe) {
-            // Top up with the newest posts from other categories.
             Set<Long> seen = related.stream().map(Blog::getId).collect(Collectors.toSet());
             seen.add(id);
             blogRepository.findRelated(id, null, PageRequest.of(0, safe + seen.size())).stream()
@@ -125,14 +128,29 @@ public class BlogServiceImpl implements BlogService {
         blog.setCoverImage(r.getCoverImage());
         blog.setTags(r.getTags() == null ? new ArrayList<>()
                 : new ArrayList<>(r.getTags().stream().filter(Objects::nonNull).map(String::trim).filter(t -> !t.isEmpty()).distinct().toList()));
-        blog.setReadTime(r.getReadTime() != null && !r.getReadTime().isBlank() ? r.getReadTime().trim() : readTime(r.getContent()));
+        blog.setReadTime(r.getReadTime() != null && !r.getReadTime().isBlank() ? r.getReadTime().trim() : null);
         blog.setCategoryId(categoryId);
+        blog.setTranslations(blog.getTranslations().mergedWith(r.getTranslations(), TranslatableFields.BLOG));
     }
 
     static String readTime(String content) {
-        if (content == null || content.isBlank()) return "1 min read";
-        int words = content.trim().split("\\s+").length;
-        return Math.max(1, (int) Math.ceil(words / (double) WORDS_PER_MINUTE)) + " min read";
+        return readTime(content, Language.current());
+    }
+
+    static String readTime(String content, Language language) {
+        int words = content == null || content.isBlank() ? 0 : content.trim().split("\\s+").length;
+        int minutes = Math.max(1, (int) Math.ceil(words / (double) WORDS_PER_MINUTE));
+        return switch (language) {
+            case AZ -> minutes + " dəq oxu";
+            case RU -> minutes + " мин чтения";
+            case EN -> minutes + " min read";
+        };
+    }
+
+    private static String localizedReadTime(Blog b, Localized t, String content) {
+        String stored = t.text("readTime", b.getReadTime());
+        if (stored == null || AUTO_READ_TIME.matcher(stored).matches()) return readTime(content);
+        return stored;
     }
 
     private List<BlogResponse> toResponses(List<Blog> blogs, boolean withContent) {
@@ -146,22 +164,27 @@ public class BlogServiceImpl implements BlogService {
         return blogs.stream().map(b -> {
             BlogSubCategory c = b.getCategoryId() == null ? null : categories.get(b.getCategoryId());
             User a = b.getAuthorId() == null ? null : authors.get(b.getAuthorId());
+            Localized t = Localized.of(b.getTranslations());
+            String content = t.text("content", b.getContent());
             return BlogResponse.builder()
                     .id(b.getId())
-                    .title(b.getTitle())
+                    .title(t.text("title", b.getTitle()))
                     .slug(b.getSlug())
-                    .excerpt(b.getExcerpt())
-                    .content(withContent ? b.getContent() : null)
+                    .excerpt(t.text("excerpt", b.getExcerpt()))
+                    .content(withContent ? content : null)
                     .coverImage(b.getCoverImage())
-                    .tags(b.getTags())
-                    .readTime(b.getReadTime() != null ? b.getReadTime() : readTime(b.getContent()))
+                    .tags(t.list("tags", b.getTags()))
+                    .readTime(localizedReadTime(b, t, content))
                     .categoryId(b.getCategoryId())
-                    .categoryName(c != null ? c.getTitle() : null)
+                    .categoryName(c != null ? BlogSubCategoryServiceImpl.categoryTitle(c) : null)
                     .categorySlug(c != null ? c.getSlug() : null)
                     .authorId(b.getAuthorId())
                     .authorName(a != null ? a.getFullName() : "PetShop")
                     .createdAt(b.getCreatedAt())
                     .updatedAt(b.getUpdatedAt())
+                    .translations(withContent ? Localized.editable(b.getTranslations(), "title", b.getTitle(),
+                            "excerpt", b.getExcerpt(), "content", b.getContent(), "tags", b.getTags(),
+                            "readTime", b.getReadTime()) : null)
                     .build();
         }).toList();
     }

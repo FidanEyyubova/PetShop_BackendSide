@@ -1,5 +1,7 @@
 package com.petshop.backend.dto.response.content;
 
+import java.util.Map;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
@@ -13,6 +15,8 @@ public class HeroSectionResponse {
     private BigDecimal discountPrice;
     private Boolean active;
     private LocalDateTime createdAt;
+
+    private Map<String, Map<String, Object>> translations;
 
     public HeroSectionResponse() {}
 
@@ -50,4 +54,7 @@ public class HeroSectionResponse {
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+
+    public Map<String, Map<String, Object>> getTranslations() { return translations; }
+    public void setTranslations(Map<String, Map<String, Object>> translations) { this.translations = translations; }
 }

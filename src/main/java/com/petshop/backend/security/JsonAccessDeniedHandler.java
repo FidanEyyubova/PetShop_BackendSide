@@ -8,7 +8,6 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 
-/** 403 when an authenticated user lacks the required role (URL-level rules). */
 @Component
 public class JsonAccessDeniedHandler implements AccessDeniedHandler {
 

@@ -19,6 +19,10 @@ public class ServiceCategoryResponse {
     private String name;
     @Schema(example = "Qulluq")
     private String azName;
+    @Schema(example = "Груминг")
+    private String ruName;
+    @Schema(description = "Name in the request language (?lang= or Accept-Language)", example = "Qulluq")
+    private String label;
     @Schema(description = "Approved providers in this category")
     private long providerCount;
 }

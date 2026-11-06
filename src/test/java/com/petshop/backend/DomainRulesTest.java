@@ -13,7 +13,6 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/** Fast unit tests for business rules that do not need a database. */
 class DomainRulesTest {
 
     @Test

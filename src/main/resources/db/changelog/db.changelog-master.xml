@@ -361,4 +361,6 @@
     <include file="db/changelog/changes/004-store-social.sql" />
     <!-- Center logo as the provider account avatar (admin lists). -->
     <include file="db/changelog/changes/005-provider-logo-avatar.sql" />
+    <!-- English and Russian versions of the text that admins, vendors and providers enter. -->
+    <include file="db/changelog/changes/006-translations.sql" />
 </databaseChangeLog>

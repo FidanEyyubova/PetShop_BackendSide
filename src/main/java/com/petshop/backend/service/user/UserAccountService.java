@@ -98,11 +98,6 @@ public class UserAccountService {
                 .build();
     }
 
-    /**
-     * Soft-deletes the account: personal data is anonymised, the email is released for re-registration,
-     * sessions, cart, wishlist and addresses are removed. Orders and reviews stay for vendors' records.
-     * The password is checked when the account has one (Google sign-in accounts have none); the reason is logged for admins.
-     */
     @Transactional
     public void deleteAccount(DeleteAccountRequest request, UserPrincipal currentUser) {
         User user = load(currentUser);
@@ -121,11 +116,6 @@ public class UserAccountService {
         anonymise(user);
     }
 
-    /**
-     * Admin deletion of any non-admin account, with the same soft delete as the self-service one: the email is
-     * released, so the person can register again with it. A seller's products / services are hidden first.
-     * Refused (409) while the account still has orders in progress as a buyer or as a vendor.
-     */
     @Transactional
     public void deleteAccountByAdmin(Long userId) {
         User user = userRepository.findById(userId)
@@ -142,7 +132,6 @@ public class UserAccountService {
         anonymise(user);
     }
 
-    /** Deleted accounts, newest first; {@code deletedBy} (SELF or ADMIN) filters by who deleted them. */
     @Transactional(readOnly = true)
     public PageResponse<AccountDeletionResponse> deletions(String deletedBy, int page, int size) {
         var pageable = PageUtils.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
@@ -152,13 +141,11 @@ public class UserAccountService {
         return PageResponse.of(result, UserAccountService::toDeletionResponse);
     }
 
-    /** Orders in progress as a buyer or, for vendors, as the selling store. */
     private boolean hasOrdersInProgress(Long userId) {
         return orderRepository.countByBuyerIdAndStatusIn(userId, OrderStatus.ACTIVE) > 0
                 || orderRepository.countByVendorIdAndStatusIn(userId, OrderStatus.ACTIVE) > 0;
     }
 
-    /** Records who the account belonged to before anonymisation, and why it was deleted. */
     private void logDeletion(User user, String deletedBy, String reason, String comment) {
         deletionRepository.save(AccountDeletion.builder()
                 .userId(user.getId())
@@ -185,7 +172,6 @@ public class UserAccountService {
                 .build();
     }
 
-    /** Hides a vendor's products and a provider's services so nothing of a deleted seller stays on sale. */
     private void hideSellerItems(Long userId) {
         List<Product> products = productRepository.findAll((root, q, cb) -> cb.and(
                 cb.equal(root.get("vendorId"), userId), cb.isTrue(root.get("isActive"))));
@@ -196,7 +182,6 @@ public class UserAccountService {
         serviceRepository.saveAll(services);
     }
 
-    /** Signs the user out everywhere, removes personal lists and anonymises the profile (frees the email). */
     private void anonymise(User user) {
         refreshTokenService.revokeAll(user.getId());
         cartItemRepository.deleteByUserId(user.getId());

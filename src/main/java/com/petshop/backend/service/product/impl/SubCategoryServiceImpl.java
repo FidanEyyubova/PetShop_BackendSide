@@ -1,5 +1,8 @@
 package com.petshop.backend.service.product.impl;
 
+import com.petshop.backend.i18n.Localized;
+import com.petshop.backend.i18n.TranslatableFields;
+import com.petshop.backend.service.product.ProductMapper;
 import com.petshop.backend.dto.request.product.SubCategoryRequest;
 import com.petshop.backend.dto.response.product.SubCategoryResponse;
 import com.petshop.backend.entity.product.Category;
@@ -31,6 +34,7 @@ public class SubCategoryServiceImpl implements SubCategoryService {
 
         SubCategory subCategory = new SubCategory();
         subCategory.setTitle(request.getTitle());
+        subCategory.setTranslations(subCategory.getTranslations().mergedWith(request.getTranslations(), TranslatableFields.SUB_CATEGORY));
         subCategory.setIcon(request.getIcon());
         subCategory.setCategory(category);
 
@@ -68,6 +72,7 @@ public class SubCategoryServiceImpl implements SubCategoryService {
                 .orElseThrow(() -> new ResourceNotFoundException("Category", "id", request.getCategoryId()));
 
         subCategory.setTitle(request.getTitle());
+        subCategory.setTranslations(subCategory.getTranslations().mergedWith(request.getTranslations(), TranslatableFields.SUB_CATEGORY));
         subCategory.setIcon(request.getIcon());
         subCategory.setCategory(category);
 
@@ -83,13 +88,18 @@ public class SubCategoryServiceImpl implements SubCategoryService {
     }
 
     private SubCategoryResponse mapToResponse(SubCategory subCategory) {
-        return new SubCategoryResponse(
-                subCategory.getId(),
-                subCategory.getTitle(),
-                subCategory.getIcon(),
-                subCategory.getCategory().getId(),
-                subCategory.getCategory().getName(),
-                subCategory.getCreatedAt()
-        );
+        return toResponse(subCategory, subCategory.getCategory());
+    }
+
+    static SubCategoryResponse toResponse(SubCategory s, Category category) {
+        return SubCategoryResponse.builder()
+                .id(s.getId())
+                .title(ProductMapper.subCategoryName(s))
+                .icon(s.getIcon())
+                .categoryId(category.getId())
+                .categoryName(ProductMapper.categoryName(category))
+                .createdAt(s.getCreatedAt())
+                .translations(Localized.editable(s.getTranslations(), "title", s.getTitle()))
+                .build();
     }
 }

@@ -16,10 +16,6 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
-/**
- * Authenticates requests carrying "Authorization: Bearer &lt;access token&gt;".
- * The user is re-loaded so that deleted or suspended accounts lose access immediately.
- */
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 

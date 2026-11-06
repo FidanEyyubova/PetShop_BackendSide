@@ -5,10 +5,6 @@ import lombok.*;
 
 import java.time.LocalDateTime;
 
-/**
- * One deleted account: who it was (captured before anonymisation), why, and whether the user or an admin deleted it.
- * Lets admins review departures even though the user row itself no longer holds personal data.
- */
 @Entity
 @Table(name = "account_deletions")
 @Getter
@@ -35,14 +31,11 @@ public class AccountDeletion {
 
     private String email;
 
-    /** Preset reason code chosen in the dashboard (e.g. NOT_USING); null when an admin deleted the account. */
     private String reason;
 
-    /** Free-text explanation written by the user. */
     @Column(columnDefinition = "TEXT")
     private String comment;
 
-    /** SELF or ADMIN. */
     @Column(name = "deleted_by", nullable = false)
     private String deletedBy;
 

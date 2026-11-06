@@ -41,7 +41,6 @@ public class WishlistServiceImpl implements WishlistService {
         return build(CurrentUser.require(currentUser).getId());
     }
 
-    /** Idempotent: adding a product twice keeps one row. */
     @Override
     @Transactional
     public WishlistResponse addToWishlist(Long productId, UserPrincipal currentUser) {
@@ -114,7 +113,6 @@ public class WishlistServiceImpl implements WishlistService {
                 .orElseThrow(() -> new ResourceNotFoundException("Product", "id", productId));
     }
 
-    /** Deleted or hidden products are left out of the response. */
     private WishlistResponse build(Long userId) {
         List<Wishlist> rows = wishlistRepository.findByUserIdOrderByCreatedAtDesc(userId);
         Map<Long, Product> products = productRepository.findAllById(rows.stream().map(Wishlist::getProductId).toList())

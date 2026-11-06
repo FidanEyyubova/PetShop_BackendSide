@@ -14,7 +14,6 @@ public interface OrderItemRepository extends JpaRepository<OrderItem, Long> {
 
     List<OrderItem> findByOrderIdIn(Collection<Long> orderIds);
 
-    /** Units sold by a vendor in orders with the given statuses. */
     @Query("SELECT COALESCE(SUM(i.quantity), 0) FROM OrderItem i, Order o WHERE i.orderId = o.id " +
            "AND o.vendorId = :vendorId AND o.status IN :statuses")
     long sumQuantityByVendorAndStatuses(@Param("vendorId") Long vendorId,

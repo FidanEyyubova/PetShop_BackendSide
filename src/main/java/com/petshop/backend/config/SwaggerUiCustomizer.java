@@ -17,19 +17,9 @@ import org.springframework.web.servlet.resource.TransformedResource;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
-/**
- * Customises the built-in Swagger UI page (/swagger-ui/index.html):
- * <ul>
- *   <li>orders operations inside every section resource by resource as GET, POST, PUT, PATCH,
- *       with all DELETE operations at the bottom of the section;</li>
- *   <li>applies the token automatically after a successful login, register or refresh call;</li>
- *   <li>shows inline code in descriptions in red.</li>
- * </ul>
- */
 @Configuration
 public class SwaggerUiCustomizer {
 
-    /** Extra Swagger UI options injected into the generated swagger-initializer.js. */
     private static final String OPTIONS = """
             operationsSorter: function (a, b) {
                 var rank = { get: 0, post: 1, put: 2, patch: 3, delete: 4 };
@@ -52,12 +42,11 @@ public class SwaggerUiCustomizer {
                                 name: 'bearerAuth', schema: { type: 'http', scheme: 'bearer' }, value: token } });
                         }
                     }
-                } catch (e) { /* not JSON */ }
+                } catch (e) { }
                 return res;
             },
             """;
 
-    /** Shows inline code in descriptions (endpoints, field names) and `petshop-red` labels in red instead of Swagger's default purple. */
     private static final String STYLE = """
             (function () {
                 var style = document.createElement('style');

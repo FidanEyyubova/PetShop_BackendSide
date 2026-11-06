@@ -22,7 +22,6 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-/** Single place for status transitions and their side effects (stock, payment status, history). */
 @Service
 public class OrderLifecycleService {
 
@@ -78,7 +77,6 @@ public class OrderLifecycleService {
                 .build());
     }
 
-    /** Puts the units of a cancelled order back in stock and removes them from the sales counter. */
     private void restoreStock(Order order) {
         List<OrderItem> items = itemRepository.findByOrderId(order.getId());
         Map<Long, Product> products = productRepository.findAllByIdForUpdate(

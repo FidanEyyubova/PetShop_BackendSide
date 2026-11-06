@@ -9,10 +9,6 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * The main marketplace flow: an approved vendor lists a product, a buyer checks out from the cart,
- * stock is reserved and the vendor moves the order through its lifecycle.
- */
 class CheckoutFlowIntegrationTest extends AbstractIntegrationTest {
 
     private String vendorToken;
@@ -42,7 +38,6 @@ class CheckoutFlowIntegrationTest extends AbstractIntegrationTest {
         assertEquals(201, checkout.status(), checkout.toString());
         JsonNode order = checkout.data().path("orders").get(0);
         assertEquals("PENDING", order.path("status").asText().toUpperCase());
-        // 3 x 20.00 = 60.00, above the free-shipping threshold.
         assertEquals(0, new BigDecimal("60.00").compareTo(checkout.data().path("subtotal").decimalValue()));
         assertEquals(0, BigDecimal.ZERO.compareTo(checkout.data().path("shippingFee").decimalValue()));
         assertEquals(7, stockOf(productId));

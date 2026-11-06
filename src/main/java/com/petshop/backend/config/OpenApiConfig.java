@@ -18,10 +18,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Swagger UI at /swagger-ui.html. Endpoints are grouped by audience (dropdown at the top right).
- * Public endpoints are detected with the same rules as SecurityConfig and shown without the lock icon.
- */
 @Configuration
 public class OpenApiConfig {
 
@@ -29,7 +25,6 @@ public class OpenApiConfig {
 
     private static final AntPathMatcher MATCHER = new AntPathMatcher();
 
-    /** Keep in sync with SecurityConfig. */
     private static final List<String> PUBLIC_ANY = List.of(
             "/api/v1/auth/login", "/api/v1/auth/google", "/api/v1/auth/register", "/api/v1/auth/register/vendor", "/api/v1/auth/register/provider",
             "/api/v1/auth/refresh-token", "/api/v1/auth/logout", "/api/v1/auth/forgot-password", "/api/v1/auth/reset-password",
@@ -46,7 +41,6 @@ public class OpenApiConfig {
     private static final List<String> HIDDEN_ALIASES = List.of(
             "/api/v1/cart/clear", "/api/v1/wishlist/clear", "/api/v1/users/profile", "/api/v1/pet-services/provider/profile");
 
-    /** Display order of the tags. */
     private static final Map<String, String> TAGS = new java.util.LinkedHashMap<>();
 
     static {
@@ -164,12 +158,10 @@ public class OpenApiConfig {
                         .description("Access token from /api/v1/auth/login")));
     }
 
-    /** Lock icon only on protected operations; ordered tags with descriptions. */
     @Bean
     public OpenApiCustomizer securityAndTagsCustomizer() {
         return openApi -> {
             if (openApi.getPaths() != null) {
-                // Backward-compatible aliases still work but are not shown, so every action appears once.
                 HIDDEN_ALIASES.forEach(openApi.getPaths()::remove);
                 PathItem reply = openApi.getPaths().get("/api/v1/reviews/{id}/reply");
                 if (reply != null) reply.setPut(null);
@@ -186,11 +178,9 @@ public class OpenApiConfig {
         };
     }
 
-    /** Documents the error responses each operation can return, with the shared error envelope. */
     private static void addErrorResponses(String path, PathItem.HttpMethod method, Operation op, boolean isPublic) {
         io.swagger.v3.oas.models.responses.ApiResponses responses = op.getResponses();
         if (responses == null) return;
-        // The success response keeps the generated schema; give it a readable description.
         responses.forEach((code, r) -> {
             if (code.startsWith("2") && (r.getDescription() == null || r.getDescription().equals("OK")
                     || r.getDescription().equals("Created"))) {

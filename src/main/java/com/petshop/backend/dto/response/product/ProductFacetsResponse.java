@@ -9,7 +9,6 @@ import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 import java.util.List;
 
-/** Counts beside every shop filter option; each dimension ignores its own filter. */
 @Data
 @Builder
 @NoArgsConstructor
@@ -41,6 +40,8 @@ public class ProductFacetsResponse {
         private String id;
         private String name;
         private String azName;
+        private String ruName;
+        private String label;
         private long count;
     }
 

@@ -1,5 +1,8 @@
 package com.petshop.backend.service.content.impl;
 
+import com.petshop.backend.i18n.Localized;
+import com.petshop.backend.i18n.TranslatableFields;
+
 import com.petshop.backend.dto.request.content.ContactInfoRequest;
 import com.petshop.backend.dto.response.content.ContactInfoResponse;
 import com.petshop.backend.entity.content.ContactInfo;
@@ -19,7 +22,7 @@ public class ContactInfoServiceImpl implements ContactInfoService {
     }
 
     @Override
-    @org.springframework.cache.annotation.Cacheable("contactInfo")
+    @org.springframework.cache.annotation.Cacheable(cacheNames = "contactInfo", key = "T(com.petshop.backend.common.Language).current()")
     public ContactInfoResponse getContactInfo() {
         List<ContactInfo> list = repository.findAll();
         if (list.isEmpty()) {
@@ -36,24 +39,30 @@ public class ContactInfoServiceImpl implements ContactInfoService {
         ContactInfo info = list.isEmpty() ? new ContactInfo() : list.get(0);
 
         info.setLocation(request.getLocation());
+
+        info.setTranslations(info.getTranslations().mergedWith(request.getTranslations(), TranslatableFields.CONTACT_INFO));
         info.setMail(request.getMail());
         info.setPhone(request.getPhone());
         info.setWorkingHours(request.getWorkingHours());
         info.setLocationMapUrl(request.getLocationMapUrl());
+        info.setTranslations(info.getTranslations().mergedWith(request.getTranslations(), TranslatableFields.CONTACT_INFO));
 
         ContactInfo saved = repository.save(info);
         return mapToResponse(saved);
     }
 
     private ContactInfoResponse mapToResponse(ContactInfo info) {
-        return new ContactInfoResponse(
+        Localized t = Localized.of(info.getTranslations());
+        ContactInfoResponse response = new ContactInfoResponse(
                 info.getId(),
-                info.getLocation(),
+                t.text("location", info.getLocation()),
                 info.getMail(),
                 info.getPhone(),
-                info.getWorkingHours(),
+                t.text("workingHours", info.getWorkingHours()),
                 info.getLocationMapUrl(),
                 info.getUpdatedAt()
         );
+        response.setTranslations(Localized.editable(info.getTranslations(), "location", info.getLocation(), "workingHours", info.getWorkingHours()));
+        return response;
     }
 }

@@ -27,7 +27,6 @@ public class NewsletterService {
         this.properties = properties;
     }
 
-    /** 409 when the email is already subscribed; a previously unsubscribed email is re-activated. */
     @Transactional
     public NewsletterSubscriberResponse subscribe(String rawEmail) {
         String email = rawEmail.trim().toLowerCase();
@@ -43,12 +42,10 @@ public class NewsletterService {
         }
         NewsletterSubscriber saved = repository.save(subscriber);
 
-        // Welcome email to the subscriber.
         emailService.send(email, "Welcome to the PetShop newsletter",
                 "Hello!\n\nThank you for subscribing to the PetShop newsletter. "
                         + "You will receive news about new products, offers and pet-care tips.\n\n"
                         + "Visit us: " + properties.getFrontendUrl() + "\n\nPetShop team");
-        // Notification to the shop's own inbox.
         String notifyTo = properties.getMail().getNotifyTo();
         if (notifyTo != null && !notifyTo.isBlank()) {
             emailService.send(notifyTo.trim(), "New newsletter subscriber",
@@ -57,7 +54,6 @@ public class NewsletterService {
         return toResponse(saved);
     }
 
-    /** Always succeeds (does not reveal whether the email was subscribed). */
     @Transactional
     public void unsubscribe(String rawEmail) {
         repository.findByEmailIgnoreCase(rawEmail.trim()).ifPresent(s -> {

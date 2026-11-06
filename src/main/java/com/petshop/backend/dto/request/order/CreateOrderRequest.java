@@ -9,10 +9,6 @@ import lombok.Data;
 
 import java.util.List;
 
-/**
- * Checkout. Without {@code items} the whole server-side cart is ordered and the ordered lines are removed
- * from the cart. Items from several stores create one order per store.
- */
 @Data
 public class CreateOrderRequest {
 

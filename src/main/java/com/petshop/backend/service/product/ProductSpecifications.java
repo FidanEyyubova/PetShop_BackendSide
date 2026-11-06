@@ -11,12 +11,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-/** Criteria predicates for product search, filters, facets and sorting. */
 public final class ProductSpecifications {
 
     private ProductSpecifications() {}
 
-    /** Effective price: the discount price when it is a real discount, otherwise the list price. */
     public static Expression<BigDecimal> effectivePrice(Root<Product> root, CriteriaBuilder cb) {
         Path<BigDecimal> price = root.get("price");
         Path<BigDecimal> discount = root.get("discountPrice");
@@ -41,7 +39,8 @@ public final class ProductSpecifications {
                     cb.like(cb.lower(root.get("title")), pattern, '\\'),
                     cb.like(cb.lower(cb.coalesce(root.get("brand"), "")), pattern, '\\'),
                     cb.like(cb.lower(cb.coalesce(root.get("categoryName"), "")), pattern, '\\'),
-                    cb.like(cb.lower(cb.coalesce(root.get("sku"), "")), pattern, '\\')));
+                    cb.like(cb.lower(cb.coalesce(root.get("sku"), "")), pattern, '\\'),
+                    cb.like(cb.lower(cb.coalesce(root.get("translationsText"), "")), pattern, '\\')));
         }
         if (skip != ProductFilter.Dimension.CATEGORY && f.categoryIds() != null) {
             p.add(f.categoryIds().isEmpty() ? cb.disjunction() : root.get("categoryId").in(f.categoryIds()));
@@ -70,7 +69,6 @@ public final class ProductSpecifications {
         return p;
     }
 
-    /** Filter + ordering. Ordering is skipped for count queries (Postgres rejects ORDER BY there). */
     public static Specification<Product> of(ProductFilter f) {
         return (root, query, cb) -> {
             List<Predicate> predicates = predicates(root, cb, f, null);

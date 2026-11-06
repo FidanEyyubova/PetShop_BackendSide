@@ -1,6 +1,8 @@
 package com.petshop.backend.entity.content;
 
 import com.petshop.backend.util.StringListConverter;
+import com.petshop.backend.i18n.Translations;
+import com.petshop.backend.i18n.TranslationsConverter;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -24,7 +26,6 @@ public class Blog {
     @Column(name = "author_id")
     private Long authorId;
 
-    /** Blog category (table blog_sub_categories). */
     @Column(name = "category_id")
     private Long categoryId;
 
@@ -53,6 +54,15 @@ public class Blog {
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
+
+    @Convert(converter = TranslationsConverter.class)
+    @Column(columnDefinition = "TEXT")
+    @Builder.Default
+    private Translations translations = Translations.empty();
+
+    @Column(name = "translations", columnDefinition = "TEXT", insertable = false, updatable = false)
+    @Setter(AccessLevel.NONE)
+    private String translationsText;
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;

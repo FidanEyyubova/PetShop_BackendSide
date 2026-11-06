@@ -10,7 +10,6 @@ public final class PageUtils {
 
     private PageUtils() {}
 
-    /** Page request with page >= 0 and 1 <= size <= 100. */
     public static Pageable of(int page, int size, Sort sort) {
         int safePage = Math.max(page, 0);
         int safeSize = Math.min(Math.max(size, 1), MAX_PAGE_SIZE);
@@ -21,7 +20,6 @@ public final class PageUtils {
         return of(page, size, Sort.unsorted());
     }
 
-    /** Sort on a whitelisted property; anything else falls back to {@code defaultProperty}. */
     public static Sort sort(String property, String direction, String defaultProperty, String... allowed) {
         String prop = defaultProperty;
         if (property != null) {

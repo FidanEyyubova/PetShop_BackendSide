@@ -1,5 +1,6 @@
 package com.petshop.backend.service.vendor;
 
+import com.petshop.backend.common.Language;
 import com.petshop.backend.common.OrderStatus;
 import com.petshop.backend.config.AppProperties;
 import com.petshop.backend.dto.response.vendor.SalesSeriesResponse;
@@ -70,7 +71,6 @@ public class VendorDashboardService {
                 .build();
     }
 
-    /** weekly: last 7 days (labels Mon..Sun); monthly: January to the current month of this year. */
     @Transactional(readOnly = true)
     public SalesSeriesResponse sales(String range, UserPrincipal currentUser) {
         Long vendorId = CurrentUser.require(currentUser).getId();
@@ -86,7 +86,7 @@ public class VendorDashboardService {
             for (LocalDate d = start; !d.isAfter(today); d = d.plusDays(1)) {
                 LocalDate day = d;
                 List<Order> sameDay = orders.stream().filter(o -> o.getCreatedAt().toLocalDate().equals(day)).toList();
-                labels.add(day.getDayOfWeek().getDisplayName(TextStyle.SHORT, Locale.ENGLISH));
+                labels.add(day.getDayOfWeek().getDisplayName(TextStyle.SHORT, Language.current().locale()));
                 revenue.add(MoneyUtils.scale(sumTotals(sameDay)));
                 counts.add((long) sameDay.size());
             }
@@ -97,7 +97,7 @@ public class VendorDashboardService {
             for (int m = 1; m <= now.getMonthValue(); m++) {
                 YearMonth ym = now.withMonth(m);
                 List<Order> sameMonth = orders.stream().filter(o -> YearMonth.from(o.getCreatedAt()).equals(ym)).toList();
-                labels.add(ym.getMonth().getDisplayName(TextStyle.SHORT, Locale.ENGLISH));
+                labels.add(ym.getMonth().getDisplayName(TextStyle.SHORT, Language.current().locale()));
                 revenue.add(MoneyUtils.scale(sumTotals(sameMonth)));
                 counts.add((long) sameMonth.size());
             }
@@ -111,7 +111,6 @@ public class VendorDashboardService {
         return sumTotals(orders(vendorId, from, to));
     }
 
-    /** Non-cancelled orders of the vendor in [from, to). */
     private List<Order> orders(Long vendorId, LocalDateTime from, LocalDateTime to) {
         return orderRepository.findByVendorIdAndCreatedAtBetween(vendorId, from, to.minusNanos(1)).stream()
                 .filter(o -> o.getStatus() != OrderStatus.CANCELLED)

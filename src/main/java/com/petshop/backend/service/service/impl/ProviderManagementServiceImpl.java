@@ -1,5 +1,6 @@
 package com.petshop.backend.service.service.impl;
 
+import com.petshop.backend.i18n.TranslatableFields;
 import com.petshop.backend.common.ServiceType;
 import com.petshop.backend.common.UserStatus;
 import com.petshop.backend.dto.request.service.*;
@@ -52,8 +53,6 @@ public class ProviderManagementServiceImpl implements ProviderManagementService 
         this.support = support;
     }
 
-    // ---- profile -------------------------------------------------------------------------------
-
     @Override
     @Transactional
     public ProviderProfileResponse getMyProfile(UserPrincipal currentUser) {
@@ -82,14 +81,11 @@ public class ProviderManagementServiceImpl implements ProviderManagementService 
         if (r.getLogoUrl() != null) updateLogo(user, p, blank(r.getLogoUrl()));
         if (r.getAmenities() != null) p.setAmenities(clean(r.getAmenities()));
         if (r.getTags() != null) p.setTags(clean(r.getTags()));
+        p.setTranslations(p.getTranslations().mergedWith(r.getTranslations(), TranslatableFields.PROVIDER));
         profileRepository.save(p);
         return queryService.buildProfile(user, p, true);
     }
 
-    /**
-     * The center logo doubles as the account avatar (admin user lists show avatars), unless the
-     * provider has a different avatar of their own.
-     */
     private void updateLogo(User user, ServiceProviderProfile p, String logoUrl) {
         String previousLogo = p.getLogoUrl();
         p.setLogoUrl(logoUrl);
@@ -114,8 +110,6 @@ public class ProviderManagementServiceImpl implements ProviderManagementService 
                         serviceRepository.findByProviderIdOrderByIdAsc(user.getId()).size()))
                 .build();
     }
-
-    // ---- team ----------------------------------------------------------------------------------
 
     @Override
     @Transactional(readOnly = true)
@@ -162,8 +156,6 @@ public class ProviderManagementServiceImpl implements ProviderManagementService 
         teamMemberRepository.delete(ownedMember(id, currentUser));
     }
 
-    // ---- services (price list) -----------------------------------------------------------------
-
     @Override
     @Transactional(readOnly = true)
     public List<ServiceResponse> getMyServices(UserPrincipal currentUser) {
@@ -175,7 +167,6 @@ public class ProviderManagementServiceImpl implements ProviderManagementService 
     public ServiceResponse createService(CreateServiceRequest r, UserPrincipal currentUser) {
         PetService s = PetService.builder().providerId(providerId(currentUser)).build();
         applyService(s, r);
-        // Services of providers waiting for approval are saved hidden.
         if (!isApproved(currentUser)) s.setActive(false);
         return support.toService(serviceRepository.save(s));
     }
@@ -207,9 +198,6 @@ public class ProviderManagementServiceImpl implements ProviderManagementService 
         serviceRepository.delete(ownedService(id, currentUser));
     }
 
-    // ---- schedule ------------------------------------------------------------------------------
-
-    /** Replaces the whole week. Days not sent are treated as closed. */
     @Override
     @Transactional
     public List<ScheduleResponse> updateSchedules(List<ScheduleRequest> requests, UserPrincipal currentUser) {
@@ -240,8 +228,6 @@ public class ProviderManagementServiceImpl implements ProviderManagementService 
         return scheduleRepository.saveAll(rows).stream().map(support::toSchedule).toList();
     }
 
-    // ---- gallery -------------------------------------------------------------------------------
-
     @Override
     @Transactional(readOnly = true)
     public List<ProviderGalleryResponse> getProviderGallery(Long providerId) {
@@ -256,6 +242,7 @@ public class ProviderManagementServiceImpl implements ProviderManagementService 
         g.setProviderId(providerId(currentUser));
         g.setImageUrl(request.getImageUrl().trim());
         g.setTitle(blank(request.getTitle()));
+        g.setTranslations(g.getTranslations().mergedWith(request.getTranslations(), TranslatableFields.GALLERY));
         return support.toGallery(galleryRepository.save(g));
     }
 
@@ -267,8 +254,6 @@ public class ProviderManagementServiceImpl implements ProviderManagementService 
         CurrentUser.requireOwnerOrAdmin(currentUser, g.getProviderId(), "gallery image");
         galleryRepository.delete(g);
     }
-
-    // ---- analytics -----------------------------------------------------------------------------
 
     @Override
     @Transactional
@@ -283,13 +268,10 @@ public class ProviderManagementServiceImpl implements ProviderManagementService 
         if (updated == 0) throw new ResourceNotFoundException("Service provider", "id", providerId);
     }
 
-    // ---- helpers -------------------------------------------------------------------------------
-
     private static boolean isApproved(UserPrincipal currentUser) {
         return currentUser.isAdmin() || currentUser.getStatus() == UserStatus.ACTIVE;
     }
 
-    /** Providers waiting for approval, rejected or suspended are not visible on the storefront. */
     private void requirePublicProvider(Long providerId) {
         userRepository.findById(providerId)
                 .filter(u -> !u.isDeleted() && u.getStatus() == UserStatus.ACTIVE)
@@ -309,7 +291,6 @@ public class ProviderManagementServiceImpl implements ProviderManagementService 
         return userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
     }
 
-    /** Creates the profile on first use (older accounts registered before profiles existed). */
     private ServiceProviderProfile profileOf(User user) {
         return profileRepository.findByProviderId(user.getId()).orElseGet(() -> profileRepository.save(
                 ServiceProviderProfile.builder().providerId(user.getId()).centerName(user.getFullName()).phone(user.getPhone()).build()));
@@ -341,6 +322,7 @@ public class ProviderManagementServiceImpl implements ProviderManagementService 
         m.setBio(blank(r.getBio()));
         m.setNote(blank(r.getNote()));
         m.setAvatar(blank(r.getAvatar()));
+        m.setTranslations(m.getTranslations().mergedWith(r.getTranslations(), TranslatableFields.TEAM_MEMBER));
     }
 
     private static void applyService(PetService s, CreateServiceRequest r) {
@@ -356,6 +338,7 @@ public class ProviderManagementServiceImpl implements ProviderManagementService 
         if (r.getActive() != null) s.setActive(r.getActive());
         if (r.getEmergencyService() != null) s.setEmergencyService(r.getEmergencyService());
         if (r.getCategoryId() != null) s.setCategoryId(r.getCategoryId());
+        s.setTranslations(s.getTranslations().mergedWith(r.getTranslations(), TranslatableFields.SERVICE));
     }
 
     private static List<String> clean(List<String> values) {

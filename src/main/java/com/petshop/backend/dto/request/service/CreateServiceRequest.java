@@ -1,5 +1,8 @@
 package com.petshop.backend.dto.request.service;
 
+import com.petshop.backend.i18n.TranslatableRequest;
+import java.util.Map;
+
 import com.fasterxml.jackson.annotation.JsonAlias;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
@@ -7,9 +10,8 @@ import lombok.Data;
 
 import java.math.BigDecimal;
 
-/** One line of the provider's price list. */
 @Data
-public class CreateServiceRequest {
+public class CreateServiceRequest implements TranslatableRequest {
 
     @NotBlank(message = "Service name is required")
     @Size(max = 200)
@@ -43,4 +45,7 @@ public class CreateServiceRequest {
     private Boolean emergencyService;
 
     private Long categoryId;
+
+    @Schema(description = TRANSLATIONS_DOC + " Fields: title, description, durationText")
+    private Map<String, Map<String, Object>> translations;
 }

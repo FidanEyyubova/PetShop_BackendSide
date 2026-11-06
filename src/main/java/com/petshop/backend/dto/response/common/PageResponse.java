@@ -7,7 +7,6 @@ import java.util.function.Function;
 
 public class PageResponse<T> {
 
-    /** Builds a page response from a Spring page whose content was already mapped. */
     public static <E, T> PageResponse<T> of(Page<E> page, List<T> content) {
         return new PageResponse<>(content, page.getNumber(), page.getSize(),
                 page.getTotalElements(), page.getTotalPages(), page.isLast());

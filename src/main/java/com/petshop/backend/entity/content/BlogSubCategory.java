@@ -1,11 +1,12 @@
 package com.petshop.backend.entity.content;
 
+import com.petshop.backend.i18n.Translations;
+import com.petshop.backend.i18n.TranslationsConverter;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
 
-/** Blog category (health, nutrition, grooming ...). Table name kept for compatibility. */
 @Entity
 @Table(name = "blog_sub_categories")
 @Getter
@@ -27,6 +28,11 @@ public class BlogSubCategory {
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
+
+    @Convert(converter = TranslationsConverter.class)
+    @Column(columnDefinition = "TEXT")
+    @Builder.Default
+    private Translations translations = Translations.empty();
 
     @PrePersist
     protected void onCreate() {

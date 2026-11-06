@@ -90,7 +90,6 @@ public class CartServiceImpl implements CartService {
         return buildCart(userId);
     }
 
-    /** Adds guest-cart quantities; unavailable products are skipped and quantities capped at stock. */
     @Override
     @Transactional
     public CartResponse mergeCart(MergeCartRequest request, UserPrincipal currentUser) {
@@ -120,8 +119,6 @@ public class CartServiceImpl implements CartService {
         cartItemRepository.deleteByUserId(CurrentUser.require(currentUser).getId());
     }
 
-    // ---- helpers -------------------------------------------------------------------------------
-
     private Product purchasableProduct(Long productId) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new ResourceNotFoundException("Product", "id", productId));
@@ -134,10 +131,10 @@ public class CartServiceImpl implements CartService {
     private void checkStock(Product product, int quantity) {
         int stock = stockOf(product);
         if (stock <= 0) {
-            throw new ConflictException("OUT_OF_STOCK", "'" + product.getTitle() + "' is out of stock");
+            throw new ConflictException("OUT_OF_STOCK", "'" + ProductMapper.localizedTitle(product) + "' is out of stock");
         }
         if (quantity > stock) {
-            throw new ConflictException("INSUFFICIENT_STOCK", "Only " + stock + " of '" + product.getTitle() + "' left");
+            throw new ConflictException("INSUFFICIENT_STOCK", "Only " + stock + " of '" + ProductMapper.localizedTitle(product) + "' left");
         }
     }
 
@@ -182,7 +179,7 @@ public class CartServiceImpl implements CartService {
             lines.add(CartItemResponse.builder()
                     .id(item.getId())
                     .productId(p.getId())
-                    .productTitle(p.getTitle())
+                    .productTitle(ProductMapper.localizedTitle(p))
                     .productSlug(p.getSlug())
                     .productImage(ProductMapper.cover(p))
                     .storeId(p.getStoreId())

@@ -11,7 +11,6 @@ import lombok.Data;
 
 import java.math.BigDecimal;
 
-/** Withdrawal request. IBAN, bank and holder default to the saved bank details. */
 @Data
 public class CreatePayoutRequest {
 

@@ -29,7 +29,6 @@ public class VendorBankDetails {
     @Column(name = "account_holder")
     private String accountHolder;
 
-    /** Tax id (VÖEN), 10 digits. */
     private String voen;
 
     @Column(name = "updated_at")

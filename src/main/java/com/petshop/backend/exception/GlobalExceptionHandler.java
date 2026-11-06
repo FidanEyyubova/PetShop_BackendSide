@@ -1,6 +1,7 @@
 package com.petshop.backend.exception;
 
 import com.petshop.backend.dto.response.common.ApiResponse;
+import com.petshop.backend.i18n.MessageTranslator;
 import jakarta.validation.ConstraintViolationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,20 +35,22 @@ import org.springframework.web.servlet.resource.NoResourceFoundException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-/**
- * Maps every exception to the {@link ApiResponse} envelope with the correct HTTP status.
- * Unexpected errors return a generic 500 without internal details; details go to the log.
- */
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
-    private static <T> ResponseEntity<ApiResponse<T>> respond(HttpStatus status, String code, String message, T data) {
-        return ResponseEntity.status(status).body(ApiResponse.error(code, message, data));
+    private final MessageTranslator translator;
+
+    public GlobalExceptionHandler(MessageTranslator translator) {
+        this.translator = translator;
     }
 
-    // ---- application exceptions ------------------------------------------------------------
+    @SuppressWarnings("unchecked")
+    private <T> ResponseEntity<ApiResponse<T>> respond(HttpStatus status, String code, String message, T data) {
+        T body = data instanceof Map<?, ?> fields ? (T) translator.translateValues((Map<String, String>) fields) : data;
+        return ResponseEntity.status(status).body(ApiResponse.error(code, translator.translate(message), body));
+    }
 
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ApiResponse<Object>> handleNotFound(ResourceNotFoundException ex) {
@@ -79,8 +82,6 @@ public class GlobalExceptionHandler {
         return respond(HttpStatus.TOO_MANY_REQUESTS, ex.getCode(), ex.getMessage(), null);
     }
 
-    // ---- security ----------------------------------------------------------------------------
-
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<ApiResponse<Object>> handleBadCredentials(BadCredentialsException ex) {
         return respond(HttpStatus.UNAUTHORIZED, "INVALID_CREDENTIALS", "Invalid email or password", null);
@@ -100,8 +101,6 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResponse<Object>> handleAccessDenied(AccessDeniedException ex) {
         return respond(HttpStatus.FORBIDDEN, "FORBIDDEN", "You do not have permission to perform this action", null);
     }
-
-    // ---- request problems ---------------------------------------------------------------------
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiResponse<Map<String, String>>> handleValidation(MethodArgumentNotValidException ex) {
@@ -189,8 +188,6 @@ public class GlobalExceptionHandler {
         return respond(HttpStatus.BAD_REQUEST, "INVALID_UPLOAD", "Invalid multipart request", null);
     }
 
-    // ---- persistence --------------------------------------------------------------------------
-
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<ApiResponse<Object>> handleDataIntegrity(DataIntegrityViolationException ex) {
         log.warn("Data integrity violation: {}", ex.getMostSpecificCause().getMessage());
@@ -203,8 +200,6 @@ public class GlobalExceptionHandler {
         return respond(HttpStatus.CONFLICT, "CONCURRENT_UPDATE",
                 "The record was changed by another request, please retry", null);
     }
-
-    // ---- fallback -----------------------------------------------------------------------------
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<Object>> handleUnexpected(Exception ex) {

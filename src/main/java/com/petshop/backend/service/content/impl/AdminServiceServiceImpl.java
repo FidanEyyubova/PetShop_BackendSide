@@ -1,5 +1,8 @@
 package com.petshop.backend.service.content.impl;
 
+import com.petshop.backend.i18n.Localized;
+import com.petshop.backend.i18n.TranslatableFields;
+
 import com.petshop.backend.dto.request.content.AdminServiceRequest;
 import com.petshop.backend.dto.response.content.AdminServiceResponse;
 import com.petshop.backend.entity.content.AdminServiceEntity;
@@ -24,6 +27,7 @@ public class AdminServiceServiceImpl implements AdminServiceService {
     public AdminServiceResponse createSiteService(AdminServiceRequest request) {
         AdminServiceEntity entity = new AdminServiceEntity();
         entity.setTitle(request.getTitle());
+        entity.setTranslations(entity.getTranslations().mergedWith(request.getTranslations(), TranslatableFields.ADMIN_SERVICE));
         entity.setSubtitle(request.getSubtitle());
         entity.setImageUrl(request.getImageUrl());
         entity.setActive(request.getActive() != null ? request.getActive() : true);
@@ -59,6 +63,8 @@ public class AdminServiceServiceImpl implements AdminServiceService {
                 .orElseThrow(() -> new ResourceNotFoundException("AdminService", "id", id));
 
         entity.setTitle(request.getTitle());
+
+        entity.setTranslations(entity.getTranslations().mergedWith(request.getTranslations(), TranslatableFields.ADMIN_SERVICE));
         entity.setSubtitle(request.getSubtitle());
         entity.setImageUrl(request.getImageUrl());
         if (request.getActive() != null) {
@@ -77,13 +83,16 @@ public class AdminServiceServiceImpl implements AdminServiceService {
     }
 
     private AdminServiceResponse mapToResponse(AdminServiceEntity entity) {
-        return new AdminServiceResponse(
+        Localized t = Localized.of(entity.getTranslations());
+        AdminServiceResponse response = new AdminServiceResponse(
                 entity.getId(),
-                entity.getTitle(),
-                entity.getSubtitle(),
+                t.text("title", entity.getTitle()),
+                t.text("subtitle", entity.getSubtitle()),
                 entity.getImageUrl(),
                 entity.getActive(),
                 entity.getCreatedAt()
         );
+        response.setTranslations(Localized.editable(entity.getTranslations(), "title", entity.getTitle(), "subtitle", entity.getSubtitle()));
+        return response;
     }
 }

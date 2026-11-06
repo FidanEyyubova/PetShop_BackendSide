@@ -11,10 +11,6 @@ import org.springframework.web.client.RestClientException;
 import java.time.Instant;
 import java.util.Set;
 
-/**
- * Verifies a Google Sign-In ID token with Google's tokeninfo endpoint (Google checks the signature)
- * and makes sure it was issued for this application's client id.
- */
 @Component
 public class GoogleTokenVerifier {
 

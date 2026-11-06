@@ -1,8 +1,12 @@
 package com.petshop.backend.dto.request.content;
 
+import com.petshop.backend.i18n.TranslatableRequest;
+import io.swagger.v3.oas.annotations.media.Schema;
+import java.util.Map;
+
 import jakarta.validation.constraints.NotBlank;
 
-public class AboutSectionRequest {
+public class AboutSectionRequest implements TranslatableRequest {
 
     @NotBlank(message = "Title is required")
     private String title;
@@ -10,6 +14,9 @@ public class AboutSectionRequest {
     private String subtitle;
     private String imageUrl;
     private String description;
+
+    @Schema(description = TRANSLATIONS_DOC + " Fields: title, subtitle, description")
+    private Map<String, Map<String, Object>> translations;
 
     public AboutSectionRequest() {}
 
@@ -31,4 +38,8 @@ public class AboutSectionRequest {
 
     public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }
+
+    @Override
+    public Map<String, Map<String, Object>> getTranslations() { return translations; }
+    public void setTranslations(Map<String, Map<String, Object>> translations) { this.translations = translations; }
 }

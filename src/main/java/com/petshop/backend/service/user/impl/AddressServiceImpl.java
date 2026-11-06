@@ -64,7 +64,6 @@ public class AddressServiceImpl implements AddressService {
         addressRepository.delete(address);
         addressRepository.flush();
         if (wasDefault) {
-            // Keep exactly one default when addresses remain.
             addressRepository.findByUserIdOrderByIsDefaultDescIdAsc(address.getUserId()).stream().findFirst()
                     .ifPresent(next -> {
                         next.setIsDefault(true);
@@ -84,7 +83,6 @@ public class AddressServiceImpl implements AddressService {
 
     private UserAddress find(Long id, UserPrincipal currentUser) {
         Long userId = CurrentUser.require(currentUser).getId();
-        // 404 instead of 403 so other users' address ids are not disclosed.
         return addressRepository.findByIdAndUserId(id, userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Address", "id", id));
     }

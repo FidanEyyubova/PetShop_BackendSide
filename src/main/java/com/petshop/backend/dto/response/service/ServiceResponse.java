@@ -1,5 +1,7 @@
 package com.petshop.backend.dto.response.service;
 
+import java.util.Map;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -29,4 +31,7 @@ public class ServiceResponse {
     private Boolean emergencyService;
     private Long categoryId;
     private LocalDateTime createdAt;
+
+    @Schema(description = "az / en / ru versions of the text fields, for edit forms")
+    private Map<String, Map<String, Object>> translations;
 }

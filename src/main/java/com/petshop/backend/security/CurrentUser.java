@@ -6,7 +6,6 @@ import com.petshop.backend.exception.UnauthorizedException;
 
 import java.util.Objects;
 
-/** Ownership and status guards used by services. */
 public final class CurrentUser {
 
     private CurrentUser() {}
@@ -18,7 +17,6 @@ public final class CurrentUser {
         return principal;
     }
 
-    /** Throws 403 unless the principal owns the resource or is an admin. */
     public static void requireOwnerOrAdmin(UserPrincipal principal, Long ownerId, String resource) {
         require(principal);
         if (!principal.isAdmin() && !Objects.equals(principal.getId(), ownerId)) {
@@ -26,7 +24,6 @@ public final class CurrentUser {
         }
     }
 
-    /** Throws 403 for sellers whose account is still waiting for approval. */
     public static void requireApproved(UserPrincipal principal) {
         require(principal);
         if (!principal.isAdmin() && principal.getStatus() != UserStatus.ACTIVE) {

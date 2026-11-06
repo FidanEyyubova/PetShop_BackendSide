@@ -15,7 +15,6 @@ public final class MoneyUtils {
         return value == null ? BigDecimal.ZERO : value;
     }
 
-    /** Price the customer pays: the discount price when it is a real discount, otherwise the list price. */
     public static BigDecimal effectivePrice(BigDecimal price, BigDecimal discountPrice) {
         if (price == null) return BigDecimal.ZERO;
         if (discountPrice != null && discountPrice.signum() > 0 && discountPrice.compareTo(price) < 0) {
@@ -24,7 +23,6 @@ public final class MoneyUtils {
         return price;
     }
 
-    /** Whole-number discount percentage, or 0 when there is no discount. */
     public static int discountPercent(BigDecimal price, BigDecimal discountPrice) {
         BigDecimal effective = effectivePrice(price, discountPrice);
         if (price == null || price.signum() <= 0 || effective.compareTo(price) >= 0) return 0;

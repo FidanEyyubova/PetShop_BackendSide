@@ -36,8 +36,6 @@ public class ProviderController {
         this.financeService = financeService;
     }
 
-    // ---- profile -------------------------------------------------------------------------------
-
     @GetMapping({"/me", "/profile"})
     @PreAuthorize(PROVIDER)
     @Operation(summary = "Get my center", description = "Full profile including inactive services, all team members, account status and profile completeness.")
@@ -60,8 +58,6 @@ public class ProviderController {
         return ResponseEntity.ok(ApiResponse.success("Stats fetched", providerService.getStats(currentUser)));
     }
 
-    // ---- bank & legal details (same store as sellers; admins review them before approval) -------
-
     @GetMapping("/bank-details")
     @PreAuthorize(PROVIDER)
     @Operation(summary = "Get my bank details", description = "VÖEN, IBAN, bank name and account holder; empty fields when nothing is saved.")
@@ -76,8 +72,6 @@ public class ProviderController {
                                                                                    @AuthenticationPrincipal UserPrincipal currentUser) {
         return ResponseEntity.ok(ApiResponse.success("Bank details saved", financeService.updateBankDetails(request, currentUser)));
     }
-
-    // ---- team ----------------------------------------------------------------------------------
 
     @GetMapping("/team-members")
     @PreAuthorize(PROVIDER)
@@ -121,8 +115,6 @@ public class ProviderController {
         providerService.deleteTeamMember(id, currentUser);
         return ResponseEntity.ok(ApiResponse.success("Team member removed"));
     }
-
-    // ---- services ------------------------------------------------------------------------------
 
     @GetMapping("/services")
     @PreAuthorize(PROVIDER)
@@ -169,8 +161,6 @@ public class ProviderController {
         return ResponseEntity.ok(ApiResponse.success("Service deleted"));
     }
 
-    // ---- schedule ------------------------------------------------------------------------------
-
     @PutMapping("/schedules")
     @PreAuthorize(PROVIDER)
     @Operation(summary = "Save the weekly schedule", description = "Replaces the whole week. Times use HH:mm; isActive=false or a missing day means closed.")
@@ -178,8 +168,6 @@ public class ProviderController {
                                                                          @AuthenticationPrincipal UserPrincipal currentUser) {
         return ResponseEntity.ok(ApiResponse.success("Schedule saved", providerService.updateSchedules(requests, currentUser)));
     }
-
-    // ---- gallery -------------------------------------------------------------------------------
 
     @GetMapping("/{providerId}/gallery")
     @Operation(summary = "Get a provider's gallery", description = "Public gallery images, newest first.")

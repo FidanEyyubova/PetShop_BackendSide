@@ -1,5 +1,8 @@
 package com.petshop.backend.entity.content;
 
+import com.petshop.backend.i18n.Translations;
+import com.petshop.backend.i18n.TranslationsConverter;
+
 import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -30,6 +33,10 @@ public class HeroSection {
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
+
+    @Convert(converter = TranslationsConverter.class)
+    @Column(columnDefinition = "TEXT")
+    private Translations translations = Translations.empty();
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
@@ -88,4 +95,7 @@ public class HeroSection {
 
     public LocalDateTime getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+
+    public Translations getTranslations() { return translations == null ? Translations.empty() : translations; }
+    public void setTranslations(Translations translations) { this.translations = translations; }
 }

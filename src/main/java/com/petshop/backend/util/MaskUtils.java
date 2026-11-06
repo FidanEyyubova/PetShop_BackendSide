@@ -4,7 +4,6 @@ public final class MaskUtils {
 
     private MaskUtils() {}
 
-    /** AZ21NABZ00000000137010001944 -> AZ21 **** **** 1944 */
     public static String maskIban(String iban) {
         if (iban == null || iban.isBlank()) return iban;
         String clean = iban.replace(" ", "");

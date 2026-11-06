@@ -10,10 +10,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Optional;
 
-/**
- * Disk storage served by GET /api/v1/files/{key}. Suitable for local development;
- * on Railway the filesystem is ephemeral, so use app.storage.type=s3 in production.
- */
 @Service
 @ConditionalOnProperty(prefix = "app.storage", name = "type", havingValue = "local", matchIfMissing = true)
 public class LocalStorageService implements StorageService {
@@ -58,7 +54,6 @@ public class LocalStorageService implements StorageService {
         try {
             Files.deleteIfExists(resolve(key));
         } catch (IOException ignored) {
-            // best effort
         }
     }
 

@@ -8,7 +8,6 @@ public final class SlugUtils {
 
     private SlugUtils() {}
 
-    /** Lower-case ASCII slug; Azerbaijani letters are transliterated (ə→e, ı→i, ş→s ...). */
     public static String slugify(String input) {
         if (input == null || input.isBlank()) return "item";
         String s = input.trim().toLowerCase(Locale.ROOT)
@@ -20,7 +19,6 @@ public final class SlugUtils {
         return s.isBlank() ? "item" : s;
     }
 
-    /** Returns base slug, or base-2, base-3 ... until {@code taken} reports it is free. */
     public static String unique(String input, Predicate<String> taken) {
         String base = slugify(input);
         String slug = base;

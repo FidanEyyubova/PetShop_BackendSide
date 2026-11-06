@@ -37,7 +37,6 @@ public class UserMapper {
                 .build();
     }
 
-    /** Role names used by the frontend register form. */
     public static String accountType(String role) {
         return switch (role) {
             case Roles.ROLE_VENDOR -> "vendor";

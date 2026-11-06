@@ -27,13 +27,11 @@ public class UserAddress {
 
     private String street;
 
-    /** Floor / apartment, free text. */
     private String floor;
 
     @Column(columnDefinition = "TEXT")
     private String note;
 
-    /** Single-line address; built from the parts when the client does not send it. */
     @Column(name = "full_address", columnDefinition = "TEXT")
     private String fullAddress;
 

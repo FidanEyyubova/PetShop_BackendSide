@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 @Data
 @Builder
@@ -55,6 +56,9 @@ public class StoreResponse {
     @JsonInclude(JsonInclude.Include.NON_NULL)
     @Schema(description = "Tax id; only returned to the owner and admins")
     private String voen;
+
+    @Schema(description = "az / en / ru versions of the text fields, for edit forms")
+    private Map<String, Map<String, Object>> translations;
 
     @Data
     @AllArgsConstructor

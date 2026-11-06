@@ -18,6 +18,10 @@ public class PetTypeResponse {
     private String name;
     @Schema(example = "İtlər")
     private String azName;
+    @Schema(example = "Собаки")
+    private String ruName;
+    @Schema(description = "Name in the request language (?lang= or Accept-Language)", example = "İtlər")
+    private String label;
     @Schema(description = "Icon hint for the frontend", example = "dog")
     private String iconName;
     @Schema(description = "Active products for this pet type")

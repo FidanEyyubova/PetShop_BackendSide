@@ -17,9 +17,6 @@ public final class OrderSpecifications {
 
     private OrderSpecifications() {}
 
-    /**
-     * @param q matches order number, store name, customer name or an item title
-     */
     public static Specification<Order> filter(Long buyerId, Long vendorId, OrderStatus status, String q,
                                               LocalDateTime from, LocalDateTime to, Boolean includeArchived) {
         return (root, query, cb) -> {

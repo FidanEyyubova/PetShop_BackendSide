@@ -14,7 +14,6 @@ import java.util.List;
 
 public interface ProductService {
 
-    /** Raw query parameters as received by the API; normalised by {@link #toFilter}. */
     record SearchParams(String q, String category, Long categoryId, Long subCategoryId, String petType, String brand,
                         Long storeId, BigDecimal minPrice, BigDecimal maxPrice, Boolean inStock, BigDecimal minRating,
                         String sort) {}

@@ -24,7 +24,6 @@ public class DatabaseConfig {
         if (rawUrl == null || rawUrl.isBlank()) {
             rawUrl = System.getenv("POSTGRES_URL");
         }
-        
         String username = System.getenv("SPRING_DATASOURCE_USERNAME");
         if (username == null || username.isBlank()) {
             username = System.getenv("PGUSER");
@@ -103,7 +102,6 @@ public class DatabaseConfig {
             password = "postgres";
         }
 
-        // Log only the host/database part; never credentials or query parameters.
         String safeUrl = jdbcUrl.contains("?") ? jdbcUrl.substring(0, jdbcUrl.indexOf('?')) : jdbcUrl;
         org.slf4j.LoggerFactory.getLogger(DatabaseConfig.class).info("Connecting to database {}", safeUrl);
 

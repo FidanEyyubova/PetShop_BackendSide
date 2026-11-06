@@ -11,10 +11,8 @@ import java.util.List;
 
 public interface CouponService {
 
-    /** Validation preview for the cart page (the amount is recomputed at checkout). */
     CouponResponse applyCoupon(ApplyCouponRequest request);
 
-    /** Validates the code against a server-side subtotal; returns the coupon and the discount. */
     Applied validate(String code, BigDecimal subtotal);
 
     void incrementUsage(Long couponId);

@@ -4,7 +4,6 @@ import com.petshop.backend.common.ValidationPatterns;
 import jakarta.validation.constraints.*;
 import lombok.Data;
 
-/** Partial update of my review. */
 @Data
 public class UpdateReviewRequest {
 

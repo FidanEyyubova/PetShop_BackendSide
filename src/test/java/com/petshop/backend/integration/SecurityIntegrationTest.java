@@ -4,7 +4,6 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-/** URL-level access rules: public storefront, signed-in areas and role-restricted areas. */
 class SecurityIntegrationTest extends AbstractIntegrationTest {
 
     @Test
@@ -12,7 +11,6 @@ class SecurityIntegrationTest extends AbstractIntegrationTest {
         assertEquals(200, get("/api/v1/products", null).status());
         assertEquals(200, get("/api/v1/categories", null).status());
         assertEquals(200, get("/actuator/health", null).status());
-        // Kubernetes probes
         assertEquals(200, get("/actuator/health/liveness", null).status());
         assertEquals(200, get("/actuator/health/readiness", null).status());
     }

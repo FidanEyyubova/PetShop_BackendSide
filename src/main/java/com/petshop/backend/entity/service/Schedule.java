@@ -19,7 +19,7 @@ public class Schedule {
     private Long providerId;
 
     @Column(name = "day_of_week", nullable = false)
-    private String dayOfWeek; // MONDAY, TUESDAY ...
+    private String dayOfWeek;
 
     @Column(name = "start_time")
     private LocalTime startTime;

@@ -16,7 +16,6 @@ import java.time.LocalDateTime;
 import java.util.Base64;
 import java.util.HexFormat;
 
-/** Opaque, rotating refresh tokens. Only SHA-256 hashes are stored. */
 @Service
 public class RefreshTokenService {
 
@@ -48,13 +47,11 @@ public class RefreshTokenService {
         return new IssuedToken(raw, expiresAt, userId);
     }
 
-    /** Validates the token, revokes it and issues a new one with the same lifetime policy. */
     @Transactional(noRollbackFor = UnauthorizedException.class)
     public IssuedToken rotate(String rawToken) {
         RefreshToken token = repository.findByTokenHash(hash(rawToken))
                 .orElseThrow(() -> new UnauthorizedException("INVALID_REFRESH_TOKEN", "Invalid refresh token"));
         if (Boolean.TRUE.equals(token.getRevoked())) {
-            // Re-use of a rotated token: treat as theft and end every session of this user.
             repository.revokeAllForUser(token.getUserId());
             throw new UnauthorizedException("INVALID_REFRESH_TOKEN", "Refresh token was already used");
         }

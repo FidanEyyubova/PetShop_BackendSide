@@ -32,12 +32,10 @@ public interface OrderRepository extends JpaRepository<Order, Long>, JpaSpecific
 
     List<Order> findByVendorIdAndStatusInAndArchivedByVendorFalse(Long vendorId, Collection<OrderStatus> statuses);
 
-    /** Distinct year-months (yyyy-MM) in which the vendor received orders, newest first. */
     @Query(value = "SELECT DISTINCT to_char(created_at, 'YYYY-MM') AS ym FROM orders " +
                    "WHERE vendor_id = :vendorId ORDER BY ym DESC", nativeQuery = true)
     List<String> findOrderMonths(@Param("vendorId") Long vendorId);
 
-    /** True when the buyer has a delivered order containing the product. */
     @Query("SELECT COUNT(o) > 0 FROM Order o, OrderItem i WHERE i.orderId = o.id AND o.buyerId = :buyerId " +
            "AND i.productId = :productId AND o.status = com.petshop.backend.common.OrderStatus.DELIVERED")
     boolean hasDeliveredProduct(@Param("buyerId") Long buyerId, @Param("productId") Long productId);

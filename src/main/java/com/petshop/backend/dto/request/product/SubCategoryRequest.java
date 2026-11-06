@@ -1,9 +1,13 @@
 package com.petshop.backend.dto.request.product;
 
-import jakarta.validation.constraints.NotNull;
+import com.petshop.backend.i18n.TranslatableRequest;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
-public class SubCategoryRequest {
+import java.util.Map;
+
+public class SubCategoryRequest implements TranslatableRequest {
 
     @NotBlank(message = "Title is required")
     private String title;
@@ -12,6 +16,9 @@ public class SubCategoryRequest {
 
     @NotNull(message = "Category ID is required")
     private Long categoryId;
+
+    @Schema(description = TRANSLATIONS_DOC + " Fields: title")
+    private Map<String, Map<String, Object>> translations;
 
     public SubCategoryRequest() {}
 
@@ -29,4 +36,8 @@ public class SubCategoryRequest {
 
     public Long getCategoryId() { return categoryId; }
     public void setCategoryId(Long categoryId) { this.categoryId = categoryId; }
+
+    @Override
+    public Map<String, Map<String, Object>> getTranslations() { return translations; }
+    public void setTranslations(Map<String, Map<String, Object>> translations) { this.translations = translations; }
 }

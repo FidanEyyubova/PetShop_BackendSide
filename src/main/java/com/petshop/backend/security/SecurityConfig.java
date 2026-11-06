@@ -22,10 +22,6 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.List;
 
-/**
- * URL rules: public storefront reads, public auth/contact/newsletter forms, everything else authenticated.
- * Role and ownership checks live on the controllers/services (@PreAuthorize + service checks).
- */
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
@@ -104,7 +100,6 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-            // Stateless API with Bearer tokens in headers: no cookies, so CSRF protection is not needed.
             .csrf(csrf -> csrf.disable())
             .exceptionHandling(ex -> ex
                     .authenticationEntryPoint(entryPoint)
@@ -130,7 +125,7 @@ public class SecurityConfig {
         config.setAllowedOrigins(properties.getCors().getAllowedOrigins().stream()
                 .map(String::trim).filter(s -> !s.isEmpty()).toList());
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-        config.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept", "X-Requested-With"));
+        config.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept", "Accept-Language", "X-Requested-With"));
         config.setExposedHeaders(List.of("Retry-After"));
         config.setAllowCredentials(true);
         config.setMaxAge(3600L);
@@ -140,7 +135,6 @@ public class SecurityConfig {
         return source;
     }
 
-    /** The filters are added to the security chain above; stop Boot from also registering them globally. */
     @Bean
     public FilterRegistrationBean<JwtAuthenticationFilter> jwtFilterRegistration(JwtAuthenticationFilter filter) {
         FilterRegistrationBean<JwtAuthenticationFilter> registration = new FilterRegistrationBean<>(filter);

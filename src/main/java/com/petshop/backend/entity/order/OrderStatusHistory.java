@@ -6,7 +6,6 @@ import lombok.*;
 
 import java.time.LocalDateTime;
 
-/** One row per status change; drives the buyer's tracking timeline. */
 @Entity
 @Table(name = "order_status_history")
 @Getter

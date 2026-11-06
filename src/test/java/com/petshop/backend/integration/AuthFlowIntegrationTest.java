@@ -8,7 +8,6 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/** Registration, login, token refresh with rotation, validation errors and the password reset flow. */
 class AuthFlowIntegrationTest extends AbstractIntegrationTest {
 
     @Autowired
@@ -69,7 +68,6 @@ class AuthFlowIntegrationTest extends AbstractIntegrationTest {
         String secondRefresh = refreshed.data().path("refreshToken").asText();
         assertNotEquals(firstRefresh, secondRefresh);
 
-        // The old token was rotated away: using it again is treated as theft.
         Response reused = post("/api/v1/auth/refresh-token", Map.of("refreshToken", firstRefresh), null);
         assertEquals(401, reused.status(), reused.toString());
     }

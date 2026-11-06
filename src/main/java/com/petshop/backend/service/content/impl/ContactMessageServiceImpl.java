@@ -56,7 +56,6 @@ public class ContactMessageServiceImpl implements ContactMessageService {
         return toResponse(find(id));
     }
 
-    /** Stores the reply and emails it to the sender (when SMTP is configured). */
     @Override
     @Transactional
     public ContactMessageResponse replyToMessage(Long id, ContactMessageReplyRequest request) {

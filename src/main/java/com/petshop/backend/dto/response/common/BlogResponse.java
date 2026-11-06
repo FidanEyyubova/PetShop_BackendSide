@@ -1,5 +1,7 @@
 package com.petshop.backend.dto.response.common;
 
+import java.util.Map;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -31,4 +33,7 @@ public class BlogResponse {
     private String authorName;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+
+    @Schema(description = "az / en / ru versions of the text fields, for edit forms")
+    private Map<String, Map<String, Object>> translations;
 }

@@ -115,7 +115,6 @@ public class VendorOrderServiceImpl implements VendorOrderService {
         return orderMapper.toResponse(lifecycle.transition(order, next, currentUser.getId(), note));
     }
 
-    /** Hides a closed order from the vendor's list; the order itself is kept. */
     @Override
     @Transactional
     public OrderResponse archiveOrder(Long orderId, UserPrincipal currentUser) {
@@ -142,13 +141,11 @@ public class VendorOrderServiceImpl implements VendorOrderService {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException("Order", "id", orderId));
         if (!currentUser.isAdmin() && !Objects.equals(order.getVendorId(), currentUser.getId())) {
-            // 404 so other stores' order ids are not disclosed.
             throw new ResourceNotFoundException("Order", "id", orderId);
         }
         return order;
     }
 
-    /** Admins see all orders; vendors only their own. */
     private static Long scope(UserPrincipal currentUser) {
         return currentUser.isAdmin() ? null : currentUser.getId();
     }

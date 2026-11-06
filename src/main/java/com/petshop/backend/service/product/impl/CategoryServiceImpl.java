@@ -1,5 +1,9 @@
 package com.petshop.backend.service.product.impl;
 
+import com.petshop.backend.common.Language;
+import com.petshop.backend.i18n.Localized;
+import com.petshop.backend.i18n.TranslatableFields;
+import com.petshop.backend.service.product.ProductMapper;
 import com.petshop.backend.common.PetType;
 import com.petshop.backend.dto.request.product.CategoryRequest;
 import com.petshop.backend.dto.response.product.CategoryResponse;
@@ -105,6 +109,8 @@ public class CategoryServiceImpl implements CategoryService {
                         .id(pt.getId())
                         .name(pt.getDisplayName())
                         .azName(pt.getAzName())
+                        .ruName(pt.getRuName())
+                        .label(pt.label(Language.current()))
                         .iconName(pt.getIconName())
                         .productCount(counts.getOrDefault(pt.getId(), 0L))
                         .build())
@@ -113,6 +119,7 @@ public class CategoryServiceImpl implements CategoryService {
 
     private void apply(Category category, CategoryRequest request, Long currentId) {
         category.setName(request.getTitle().trim());
+        category.setTranslations(category.getTranslations().mergedWith(request.getTranslations(), TranslatableFields.CATEGORY));
         category.setIcon(request.getIcon());
         category.setImageUrl(request.getIcon());
         category.setType(request.getType() == null || request.getType().isBlank() ? "PRODUCT" : request.getType().trim().toUpperCase());
@@ -132,17 +139,18 @@ public class CategoryServiceImpl implements CategoryService {
     private CategoryResponse toResponse(Category c, Map<Long, Long> counts) {
         List<SubCategoryResponse> subs = c.getSubCategories() == null ? List.of() : c.getSubCategories().stream()
                 .sorted(Comparator.comparing(SubCategory::getTitle, String.CASE_INSENSITIVE_ORDER))
-                .map(s -> new SubCategoryResponse(s.getId(), s.getTitle(), s.getIcon(), c.getId(), c.getName(), s.getCreatedAt()))
+                .map(s -> SubCategoryServiceImpl.toResponse(s, c))
                 .toList();
         return CategoryResponse.builder()
                 .id(c.getId())
-                .title(c.getName())
+                .title(ProductMapper.categoryName(c))
                 .icon(c.getIcon())
                 .slug(c.getSlug())
                 .type(c.getType())
                 .productCount(counts.getOrDefault(c.getId(), 0L))
                 .subCategories(subs)
                 .createdAt(c.getCreatedAt())
+                .translations(Localized.editable(c.getTranslations(), "title", c.getName()))
                 .build();
     }
 }

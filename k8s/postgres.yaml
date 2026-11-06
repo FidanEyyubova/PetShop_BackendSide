@@ -1,4 +1,3 @@
-# PostgreSQL with persistent storage. Only reachable inside the cluster (ClusterIP service).
 apiVersion: v1
 kind: Service
 metadata:
@@ -85,3 +84,4 @@ spec:
         resources:
           requests:
             storage: 2Gi
+

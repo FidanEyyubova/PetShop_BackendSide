@@ -10,7 +10,6 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
-/** Compact product used by grids, search, wishlist, related and best sellers. */
 @Data
 @Builder
 @NoArgsConstructor

@@ -6,7 +6,6 @@ import jakarta.persistence.Converter;
 import java.util.ArrayList;
 import java.util.List;
 
-/** Stores a List&lt;String&gt; as a JSON array in a TEXT column; reads legacy comma-separated text too. */
 @Converter
 public class StringListConverter implements AttributeConverter<List<String>, String> {
 

@@ -8,7 +8,6 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 
-/** 401 for protected endpoints called without a valid access token. */
 @Component
 public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
 

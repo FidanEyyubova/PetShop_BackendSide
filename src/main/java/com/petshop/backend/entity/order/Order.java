@@ -9,7 +9,6 @@ import lombok.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-/** One order per store. A checkout with items from several stores creates several orders sharing checkoutGroup. */
 @Entity
 @Table(name = "orders")
 @Getter
@@ -38,7 +37,6 @@ public class Order {
     @Column(name = "vendor_id")
     private Long vendorId;
 
-    /** Snapshot of the store name at checkout. */
     @Column(name = "store_name")
     private String storeName;
 
@@ -54,7 +52,6 @@ public class Order {
     @Column(name = "coupon_code")
     private String couponCode;
 
-    /** subtotal + shippingFee - discountAmount. */
     @Column(name = "total_amount", nullable = false)
     private BigDecimal totalAmount;
 
@@ -97,7 +94,6 @@ public class Order {
     @Column(name = "cancel_reason", columnDefinition = "TEXT")
     private String cancelReason;
 
-    /** Hidden from the vendor's list ("clear closed"); never deleted. */
     @Column(name = "archived_by_vendor")
     private Boolean archivedByVendor;
 

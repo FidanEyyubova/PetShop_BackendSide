@@ -1,12 +1,13 @@
 package com.petshop.backend.entity.service;
 
+import com.petshop.backend.i18n.Translations;
+import com.petshop.backend.i18n.TranslationsConverter;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-/** One line of a provider's price list (e.g. "Full grooming, 60 min, 35-50 ₼"). */
 @Entity
 @Table(name = "services")
 @Getter
@@ -32,18 +33,15 @@ public class PetService {
     @Column(columnDefinition = "TEXT")
     private String description;
 
-    /** Lowest price (priceMin). */
     @Column(name = "base_price", nullable = false)
     private BigDecimal basePrice;
 
-    /** Highest price; null for a fixed price. */
     @Column(name = "price_max")
     private BigDecimal priceMax;
 
     @Column(name = "duration_minutes")
     private Integer durationMinutes;
 
-    /** Free-text duration as typed by the provider ("45-60 dəq"). */
     @Column(name = "duration_text")
     private String durationText;
 
@@ -61,6 +59,11 @@ public class PetService {
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
+
+    @Convert(converter = TranslationsConverter.class)
+    @Column(columnDefinition = "TEXT")
+    @Builder.Default
+    private Translations translations = Translations.empty();
 
     @PrePersist
     protected void onCreate() {

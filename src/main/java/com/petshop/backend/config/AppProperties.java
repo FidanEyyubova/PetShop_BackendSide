@@ -6,7 +6,6 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
-/** Application settings bound from the {@code app.*} section of application.yml / environment. */
 @ConfigurationProperties(prefix = "app")
 public class AppProperties {
 
@@ -37,7 +36,6 @@ public class AppProperties {
     public void setFrontendUrl(String frontendUrl) { this.frontendUrl = frontendUrl; }
 
     public static class Cors {
-        /** Exact origins allowed to call the API with credentials. */
         private List<String> allowedOrigins = new ArrayList<>(List.of(
                 "https://pet-shop-frontend-side.vercel.app",
                 "http://localhost:5173",
@@ -48,11 +46,8 @@ public class AppProperties {
     }
 
     public static class Shipping {
-        /** Orders at or above this subtotal ship for free ("Free shipping on orders over 50 ₼"). */
         private BigDecimal freeThreshold = new BigDecimal("50.00");
-        /** Fee charged below the threshold. Business value not confirmed by the frontend; configurable. */
         private BigDecimal fee = new BigDecimal("5.00");
-        /** Estimated delivery window, in hours from order creation. */
         private int deliveryHoursFrom = 24;
         private int deliveryHoursTo = 48;
 
@@ -67,9 +62,7 @@ public class AppProperties {
     }
 
     public static class Finance {
-        /** Platform commission taken from vendor revenue (0.10 = 10%). */
         private BigDecimal commissionRate = new BigDecimal("0.10");
-        /** Products with stock at or below this value count as low stock. */
         private int lowStockThreshold = 5;
 
         public BigDecimal getCommissionRate() { return commissionRate; }
@@ -79,10 +72,8 @@ public class AppProperties {
     }
 
     public static class Storage {
-        /** "local" (disk, served by /api/v1/files/{name}) or "s3" (any S3-compatible bucket). */
         private String type = "local";
         private String localDir = "uploads";
-        /** Public base URL for files; empty = relative URLs served by this API. */
         private String publicBaseUrl = "";
         private long maxFileSizeBytes = 5 * 1024 * 1024;
         private final S3 s3 = new S3();
@@ -100,7 +91,6 @@ public class AppProperties {
         public static class S3 {
             private String bucket;
             private String region = "auto";
-            /** Custom endpoint for R2 / MinIO / Spaces; empty for AWS. */
             private String endpoint;
             private String accessKey;
             private String secretKey;
@@ -119,7 +109,6 @@ public class AppProperties {
     }
 
     public static class Admin {
-        /** Seed admin account; created on startup only when both values are set. */
         private String email;
         private String password;
 
@@ -130,11 +119,9 @@ public class AppProperties {
     }
 
     public static class Jwt {
-        /** HMAC secret, at least 64 characters. When missing a random secret is generated at startup. */
         private String secret;
         private long accessTokenMinutes = 60;
         private long refreshTokenDays = 30;
-        /** Refresh token lifetime when the user did not tick "remember me". */
         private long shortRefreshTokenHours = 24;
 
         public String getSecret() { return secret; }
@@ -149,11 +136,8 @@ public class AppProperties {
 
     public static class Mail {
         private String from = "no-reply@petshop.az";
-        /** Display name shown next to the sender address in the inbox. */
         private String fromName = "PetShop";
-        /** Shop's own inbox; receives a notification for every new newsletter subscriber. Empty = no notification. */
         private String notifyTo;
-        /** Brevo transactional-email API key. When set, mail is sent over HTTPS instead of SMTP (hosts such as Railway Hobby block SMTP ports). */
         private String brevoApiKey;
 
         public String getFrom() { return from; }
@@ -167,7 +151,6 @@ public class AppProperties {
     }
 
     public static class Google {
-        /** OAuth 2.0 Web client id from Google Cloud Console; empty disables Google sign-in. */
         private String clientId;
 
         public String getClientId() { return clientId; }
@@ -176,13 +159,9 @@ public class AppProperties {
 
     public static class RateLimit {
         private boolean enabled = true;
-        /** Requests per minute per client IP for login, register and password reset. */
         private int authPerMinute = 10;
-        /** Requests per minute per client IP for contact form and newsletter. */
         private int formsPerMinute = 5;
-        /** Requests per minute per client IP for review creation. */
         private int reviewsPerMinute = 10;
-        /** Requests per minute per client IP for provider analytics events. */
         private int eventsPerMinute = 60;
 
         public boolean isEnabled() { return enabled; }

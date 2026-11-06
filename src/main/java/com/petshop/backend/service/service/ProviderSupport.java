@@ -1,5 +1,6 @@
 package com.petshop.backend.service.service;
 
+import com.petshop.backend.i18n.Localized;
 import com.petshop.backend.common.ServiceType;
 import com.petshop.backend.config.AppProperties;
 import com.petshop.backend.dto.response.service.*;
@@ -16,7 +17,6 @@ import java.time.format.TextStyle;
 import java.util.*;
 import java.util.stream.Stream;
 
-/** Shared mapping and derived values for service providers (open now, price range, weekly schedule). */
 @Component
 public class ProviderSupport {
 
@@ -35,7 +35,6 @@ public class ProviderSupport {
                 .filter(s -> s.getStartTime() != null && s.getEndTime() != null)
                 .anyMatch(s -> s.getEndTime().isAfter(s.getStartTime())
                         ? !time.isBefore(s.getStartTime()) && time.isBefore(s.getEndTime())
-                        // overnight, e.g. 20:00 - 02:00
                         : !time.isBefore(s.getStartTime()) || time.isBefore(s.getEndTime()));
     }
 
@@ -48,7 +47,6 @@ public class ProviderSupport {
                 .orElse(null);
     }
 
-    /** Monday..Sunday -> "09:00 - 20:00" or "Closed" (frontend weeklySchedule shape). */
     public Map<String, String> weekly(List<Schedule> schedules) {
         Map<String, String> result = new LinkedHashMap<>();
         for (DayOfWeek d : DayOfWeek.values()) {
@@ -101,7 +99,6 @@ public class ProviderSupport {
         }
     }
 
-    /** Share of the settings-tab fields that are filled in (0-100). */
     public int completeness(ServiceProviderProfile p, int schedules, int services) {
         long filled = Stream.of(p.getCenterName(), p.getServiceType(), p.getBio(), p.getCity(), p.getAddress(),
                         p.getPhone(), p.getWhatsapp(), p.getInstagram(), p.getLogoUrl(), p.getBannerUrl())
@@ -113,34 +110,40 @@ public class ProviderSupport {
     }
 
     public ServiceResponse toService(PetService s) {
+        Localized t = Localized.of(s.getTranslations());
         return ServiceResponse.builder()
                 .id(s.getId())
                 .providerId(s.getProviderId())
-                .title(s.getTitle())
-                .description(s.getDescription())
+                .title(t.text("title", s.getTitle()))
+                .description(t.text("description", s.getDescription()))
                 .priceMin(s.getBasePrice())
                 .priceMax(s.getPriceMax())
                 .priceLabel(priceLabel(s.getBasePrice(), s.getPriceMax()))
-                .durationText(s.getDurationText())
+                .durationText(t.text("durationText", s.getDurationText()))
                 .durationMinutes(s.getDurationMinutes())
                 .active(!Boolean.FALSE.equals(s.getActive()))
                 .emergencyService(Boolean.TRUE.equals(s.getEmergencyService()))
                 .categoryId(s.getCategoryId())
                 .createdAt(s.getCreatedAt())
+                .translations(Localized.editable(s.getTranslations(), "title", s.getTitle(),
+                        "description", s.getDescription(), "durationText", s.getDurationText()))
                 .build();
     }
 
     public TeamMemberResponse toTeamMember(TeamMember t) {
+        Localized l = Localized.of(t.getTranslations());
         return TeamMemberResponse.builder()
                 .id(t.getId())
                 .fullName(t.getFullName())
-                .role(t.getRole())
-                .experience(t.getExperience())
-                .certifications(t.getCertifications())
-                .bio(t.getBio())
-                .note(t.getNote())
+                .role(l.text("role", t.getRole()))
+                .experience(l.text("experience", t.getExperience()))
+                .certifications(l.text("certifications", t.getCertifications()))
+                .bio(l.text("bio", t.getBio()))
+                .note(l.text("note", t.getNote()))
                 .avatar(t.getAvatar())
                 .featured(Boolean.TRUE.equals(t.getFeatured()))
+                .translations(Localized.editable(t.getTranslations(), "role", t.getRole(), "experience", t.getExperience(),
+                        "certifications", t.getCertifications(), "bio", t.getBio(), "note", t.getNote()))
                 .build();
     }
 
@@ -159,8 +162,9 @@ public class ProviderSupport {
                 .id(g.getId())
                 .providerId(g.getProviderId())
                 .imageUrl(g.getImageUrl())
-                .title(g.getTitle())
+                .title(Localized.of(g.getTranslations()).text("title", g.getTitle()))
                 .createdAt(g.getCreatedAt())
+                .translations(Localized.editable(g.getTranslations(), "title", g.getTitle()))
                 .build();
     }
 }

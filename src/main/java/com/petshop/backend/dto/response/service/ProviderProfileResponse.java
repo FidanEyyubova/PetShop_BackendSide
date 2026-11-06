@@ -11,7 +11,6 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 
-/** Full provider page (public) and the provider's own settings (with private fields). */
 @Data
 @Builder
 @NoArgsConstructor
@@ -63,4 +62,7 @@ public class ProviderProfileResponse {
     @JsonInclude(JsonInclude.Include.NON_NULL)
     @Schema(description = "Owner/admin only: percentage of filled profile fields")
     private Integer profileCompleteness;
+
+    @Schema(description = "az / en / ru versions of the text fields, for edit forms")
+    private Map<String, Map<String, Object>> translations;
 }

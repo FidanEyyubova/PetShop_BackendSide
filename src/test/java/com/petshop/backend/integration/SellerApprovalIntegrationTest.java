@@ -7,7 +7,6 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/** Vendors and service providers start as PENDING_APPROVAL and can publish only after an admin approves them. */
 class SellerApprovalIntegrationTest extends AbstractIntegrationTest {
 
     @Test

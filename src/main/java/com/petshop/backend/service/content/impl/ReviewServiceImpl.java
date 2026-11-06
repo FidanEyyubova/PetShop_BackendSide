@@ -26,6 +26,7 @@ import com.petshop.backend.repository.user.UserRepository;
 import com.petshop.backend.security.CurrentUser;
 import com.petshop.backend.security.UserPrincipal;
 import com.petshop.backend.service.content.ReviewService;
+import com.petshop.backend.service.product.ProductMapper;
 import com.petshop.backend.util.PageUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
@@ -59,8 +60,6 @@ public class ReviewServiceImpl implements ReviewService {
         this.profileRepository = profileRepository;
         this.orderRepository = orderRepository;
     }
-
-    // ---- reads ---------------------------------------------------------------------------------
 
     @Override
     @Transactional(readOnly = true)
@@ -97,7 +96,6 @@ public class ReviewServiceImpl implements ReviewService {
         return PageResponse.of(result, toResponses(result.getContent()));
     }
 
-    /** Reviews on the vendor's products and store (vendor dashboard reviews tab). */
     @Override
     @Transactional(readOnly = true)
     public PageResponse<ReviewResponse> getVendorReviews(UserPrincipal currentUser, int page, int size) {
@@ -111,8 +109,6 @@ public class ReviewServiceImpl implements ReviewService {
                 : reviewRepository.findForVendor(productIds, storeId, pageable);
         return PageResponse.of(result, toResponses(result.getContent()));
     }
-
-    // ---- writes --------------------------------------------------------------------------------
 
     @Override
     @Transactional
@@ -168,7 +164,6 @@ public class ReviewServiceImpl implements ReviewService {
         return toResponses(List.of(saved)).get(0);
     }
 
-    /** Only the owner of the reviewed product, store or center (or an admin) may reply. */
     @Override
     @Transactional
     public ReviewResponse replyToReview(Long id, ReviewReplyRequest request, UserPrincipal currentUser) {
@@ -214,13 +209,10 @@ public class ReviewServiceImpl implements ReviewService {
         recalculate(ReviewTargetType.parse(review.getTargetType()), review.getTargetId());
     }
 
-    // ---- helpers -------------------------------------------------------------------------------
-
     private Review find(Long id) {
         return reviewRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Review", "id", id));
     }
 
-    /** Owner user id of the target; 404 when the target does not exist. */
     private Long targetOwner(ReviewTargetType type, Long targetId) {
         return switch (type) {
             case PRODUCT -> productRepository.findByIdAndDeletedAtIsNull(targetId)
@@ -267,7 +259,6 @@ public class ReviewServiceImpl implements ReviewService {
                 .build();
     }
 
-    /** Stores the average and count on the reviewed product, store or provider profile. */
     private void recalculate(ReviewTargetType type, Long targetId) {
         if (type == null) return;
         ReviewSummaryResponse s = summarize(type, targetId);
@@ -279,7 +270,6 @@ public class ReviewServiceImpl implements ReviewService {
         }
     }
 
-    /** Maps a batch, loading authors and target names once (no N+1). */
     private List<ReviewResponse> toResponses(List<Review> reviews) {
         if (reviews.isEmpty()) return List.of();
         Map<Long, User> users = userRepository.findByIdIn(reviews.stream().map(Review::getUserId).collect(Collectors.toSet()))
@@ -305,7 +295,7 @@ public class ReviewServiceImpl implements ReviewService {
                 case "PRODUCT" -> {
                     Product p = products.get(r.getTargetId());
                     if (p != null) {
-                        targetName = p.getTitle();
+                        targetName = ProductMapper.localizedTitle(p);
                         Store s = p.getStoreId() == null ? null : stores.get(p.getStoreId());
                         storeName = s != null ? s.getName() : null;
                     }

@@ -16,7 +16,6 @@ import java.security.SecureRandom;
 import java.util.Base64;
 import java.util.Date;
 
-/** Issues and validates short-lived access tokens (HS512). Refresh tokens are opaque, see RefreshTokenService. */
 @Component
 public class JwtTokenProvider {
 

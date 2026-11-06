@@ -160,7 +160,6 @@ public class VendorFinanceServiceImpl implements VendorFinanceService {
                 : userRepository.findById(vendorId).map(User::getFullName).orElse(null));
         details.setVoen(request.getVoen());
         VendorBankDetails saved = bankDetailsRepository.save(details);
-        // Keep the store's VÖEN in sync (shown in the vendor sidebar).
         storeRepository.findFirstByOwnerIdOrderByIdAsc(vendorId).ifPresent(store -> {
             store.setVoen(request.getVoen());
             storeRepository.save(store);

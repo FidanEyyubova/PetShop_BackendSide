@@ -85,10 +85,6 @@ public class OrderServiceImpl implements OrderService {
         this.shipping = properties.getShipping();
     }
 
-    /**
-     * Checkout: validates lines against locked product rows, snapshots prices, decrements stock,
-     * splits the lines into one order per store and applies an optional coupon proportionally.
-     */
     @Override
     @Transactional
     public CheckoutResponse createOrder(CreateOrderRequest request, UserPrincipal currentUser) {
@@ -111,7 +107,6 @@ public class OrderServiceImpl implements OrderService {
         String address = resolveAddress(request, buyer.getId());
         PaymentMethod paymentMethod = PaymentMethod.parse(request.getPaymentMethod());
 
-        // Lock rows so two buyers cannot take the last unit at the same time.
         Map<Long, Product> products = productRepository.findAllByIdForUpdate(quantities.keySet()).stream()
                 .collect(Collectors.toMap(Product::getId, Function.identity()));
         List<String> problems = new ArrayList<>();
@@ -122,8 +117,8 @@ public class OrderServiceImpl implements OrderService {
             } else {
                 int stock = p.getStockQuantity() == null ? 0 : p.getStockQuantity();
                 if (stock < e.getValue()) {
-                    problems.add(stock <= 0 ? "'" + p.getTitle() + "' is out of stock"
-                            : "Only " + stock + " of '" + p.getTitle() + "' left");
+                    problems.add(stock <= 0 ? "'" + ProductMapper.localizedTitle(p) + "' is out of stock"
+                            : "Only " + stock + " of '" + ProductMapper.localizedTitle(p) + "' left");
                 }
             }
         }
@@ -131,12 +126,11 @@ public class OrderServiceImpl implements OrderService {
             throw new ConflictException("STOCK_PROBLEM", String.join("; ", problems));
         }
 
-        // Group lines by store and compute totals.
         Map<Long, List<Product>> byStore = new LinkedHashMap<>();
         for (Long productId : quantities.keySet()) {
             Product p = products.get(productId);
             if (p.getStoreId() == null) {
-                throw new ConflictException("PRODUCT_WITHOUT_STORE", "'" + p.getTitle() + "' cannot be ordered");
+                throw new ConflictException("PRODUCT_WITHOUT_STORE", "'" + ProductMapper.localizedTitle(p) + "' cannot be ordered");
             }
             byStore.computeIfAbsent(p.getStoreId(), k -> new ArrayList<>()).add(p);
         }
@@ -271,9 +265,6 @@ public class OrderServiceImpl implements OrderService {
         return orderMapper.toResponse(lifecycle.transition(order, OrderStatus.CANCELLED, currentUser.getId(), reason));
     }
 
-    // ---- helpers -------------------------------------------------------------------------------
-
-    /** Buyer, the store's vendor or an admin; others get 404 so order ids are not disclosed. */
     private void requireCanView(Order order, UserPrincipal currentUser) {
         CurrentUser.require(currentUser);
         boolean allowed = currentUser.isAdmin()
@@ -299,7 +290,6 @@ public class OrderServiceImpl implements OrderService {
                 .orElseThrow(() -> new BadRequestException("ADDRESS_REQUIRED", "Send addressId or shippingAddress"));
     }
 
-    /** Splits the coupon discount across store orders in proportion to their subtotals. */
     private static Map<Long, BigDecimal> distribute(BigDecimal discount, Map<Long, BigDecimal> subtotals) {
         Map<Long, BigDecimal> result = new LinkedHashMap<>();
         if (discount.signum() <= 0) return result;

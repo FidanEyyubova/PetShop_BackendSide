@@ -1,9 +1,13 @@
 package com.petshop.backend.dto.request.content;
 
+import com.petshop.backend.i18n.TranslatableRequest;
+import io.swagger.v3.oas.annotations.media.Schema;
+import java.util.Map;
+
 import jakarta.validation.constraints.NotBlank;
 import java.math.BigDecimal;
 
-public class HeroSectionRequest {
+public class HeroSectionRequest implements TranslatableRequest {
 
     @NotBlank(message = "Title is required")
     private String title;
@@ -13,6 +17,9 @@ public class HeroSectionRequest {
     private BigDecimal price;
     private BigDecimal discountPrice;
     private Boolean active = true;
+
+    @Schema(description = TRANSLATIONS_DOC + " Fields: title, subtitle")
+    private Map<String, Map<String, Object>> translations;
 
     public HeroSectionRequest() {}
 
@@ -42,4 +49,8 @@ public class HeroSectionRequest {
 
     public Boolean getActive() { return active; }
     public void setActive(Boolean active) { this.active = active; }
+
+    @Override
+    public Map<String, Map<String, Object>> getTranslations() { return translations; }
+    public void setTranslations(Map<String, Map<String, Object>> translations) { this.translations = translations; }
 }

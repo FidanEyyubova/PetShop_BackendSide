@@ -1,5 +1,7 @@
 package com.petshop.backend.dto.response.content;
 
+import java.util.Map;
+
 import java.time.LocalDateTime;
 
 public class AboutSectionResponse {
@@ -10,6 +12,8 @@ public class AboutSectionResponse {
     private String imageUrl;
     private String description;
     private LocalDateTime createdAt;
+
+    private Map<String, Map<String, Object>> translations;
 
     public AboutSectionResponse() {}
 
@@ -39,4 +43,7 @@ public class AboutSectionResponse {
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+
+    public Map<String, Map<String, Object>> getTranslations() { return translations; }
+    public void setTranslations(Map<String, Map<String, Object>> translations) { this.translations = translations; }
 }

@@ -1,9 +1,5 @@
 package com.petshop.backend.common;
 
-/**
- * Single role vocabulary used by the whole application.
- * Authorities are stored with the ROLE_ prefix; {@code hasRole(...)} checks use the short names.
- */
 public final class Roles {
 
     public static final String BUYER = "BUYER";
@@ -18,7 +14,6 @@ public final class Roles {
 
     private Roles() {}
 
-    /** Maps legacy and frontend role names to the canonical ROLE_* authority. */
     public static String normalize(String role) {
         if (role == null || role.isBlank()) return ROLE_BUYER;
         String r = role.trim().toUpperCase();

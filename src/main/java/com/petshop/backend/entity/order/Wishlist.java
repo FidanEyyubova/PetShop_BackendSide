@@ -25,7 +25,6 @@ public class Wishlist {
     @Column(name = "product_id", nullable = false)
     private Long productId;
 
-    /** Legacy column, always 1. */
     @Column(name = "quantity")
     @Builder.Default
     private Integer quantity = 1;

@@ -6,7 +6,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
 import lombok.Data;
 
-/** Vendor sign-up; creates the user and its store in one step. The account waits for admin approval. */
 @Data
 public class RegisterVendorRequest {
 

@@ -1,5 +1,6 @@
 package com.petshop.backend.service.product.impl;
 
+import com.petshop.backend.common.Language;
 import com.petshop.backend.common.PetType;
 import com.petshop.backend.common.ProductSort;
 import com.petshop.backend.dto.request.product.CreateProductRequest;
@@ -13,6 +14,7 @@ import com.petshop.backend.entity.product.Category;
 import com.petshop.backend.entity.product.Product;
 import com.petshop.backend.entity.product.Store;
 import com.petshop.backend.entity.product.SubCategory;
+import com.petshop.backend.i18n.TranslatableFields;
 import com.petshop.backend.exception.AccessDeniedCustomException;
 import com.petshop.backend.exception.BadRequestException;
 import com.petshop.backend.exception.ConflictException;
@@ -69,8 +71,6 @@ public class ProductServiceImpl implements ProductService {
         this.entityManager = entityManager;
     }
 
-    // ---- query building --------------------------------------------------------------------------
-
     @Override
     @Transactional(readOnly = true)
     public ProductFilter toFilter(SearchParams p, boolean includeHidden, Long vendorId, Boolean active) {
@@ -88,7 +88,6 @@ public class ProductServiceImpl implements ProductService {
             if (c.matches("\\d+")) {
                 categoryIds = List.of(Long.parseLong(c));
             } else {
-                // Unknown slug -> empty result rather than 404.
                 categoryIds = categoryRepository.findBySlugIgnoreCase(c).map(cat -> List.of(cat.getId())).orElse(List.of());
             }
         }
@@ -111,7 +110,6 @@ public class ProductServiceImpl implements ProductService {
 
         long total = productRepository.count(ProductSpecifications.of(filter));
 
-        // Categories (ignoring the category filter)
         CriteriaQuery<Tuple> cq = cb.createTupleQuery();
         Root<Product> root = cq.from(Product.class);
         cq.multiselect(root.get("categoryId"), cb.count(root))
@@ -123,11 +121,10 @@ public class ProductServiceImpl implements ProductService {
         }
         List<ProductFacetsResponse.CategoryFacet> categories = categoryRepository.findAllByOrderByNameAsc().stream()
                 .filter(c -> c.getType() == null || "PRODUCT".equalsIgnoreCase(c.getType()))
-                .map(c -> new ProductFacetsResponse.CategoryFacet(c.getId(), c.getSlug(), c.getName(),
+                .map(c -> new ProductFacetsResponse.CategoryFacet(c.getId(), c.getSlug(), ProductMapper.categoryName(c),
                         categoryCounts.getOrDefault(c.getId(), 0L)))
                 .toList();
 
-        // Pet types (ignoring the pet type filter)
         cq = cb.createTupleQuery();
         root = cq.from(Product.class);
         cq.multiselect(root.get("petType"), cb.count(root))
@@ -139,10 +136,10 @@ public class ProductServiceImpl implements ProductService {
         }
         List<ProductFacetsResponse.PetTypeFacet> petTypes = Arrays.stream(PetType.values())
                 .map(pt -> new ProductFacetsResponse.PetTypeFacet(pt.getId(), pt.getDisplayName(), pt.getAzName(),
+                        pt.getRuName(), pt.label(Language.current()),
                         petCounts.getOrDefault(pt.getId(), 0L)))
                 .toList();
 
-        // Brands (ignoring the brand filter)
         cq = cb.createTupleQuery();
         root = cq.from(Product.class);
         cq.multiselect(root.get("brand"), cb.count(root))
@@ -154,7 +151,6 @@ public class ProductServiceImpl implements ProductService {
                 .map(t -> new ProductFacetsResponse.BrandFacet((String) t.get(0), (Long) t.get(1)))
                 .toList();
 
-        // Price range (ignoring the price filter)
         CriteriaQuery<Tuple> pq = cb.createTupleQuery();
         Root<Product> pr = pq.from(Product.class);
         Expression<BigDecimal> effective = ProductSpecifications.effectivePrice(pr, cb);
@@ -174,8 +170,6 @@ public class ProductServiceImpl implements ProductService {
     private static Predicate and(CriteriaBuilder cb, List<Predicate> predicates) {
         return cb.and(predicates.toArray(Predicate[]::new));
     }
-
-    // ---- public reads -----------------------------------------------------------------------------
 
     @Override
     @Transactional(readOnly = true)
@@ -202,7 +196,6 @@ public class ProductServiceImpl implements ProductService {
         List<Long> ids = productRepository.findBestSellerIds(PageRequest.of(0, safe));
         List<Product> products;
         if (ids.isEmpty()) {
-            // New shop without sales yet: fall back to the best rated / newest products.
             products = productRepository.findAll(ProductSpecifications.of(new ProductFilter(null, null, null, null, null,
                     null, null, null, null, null, null, null, false, ProductSort.RATING)), PageRequest.of(0, safe)).getContent();
         } else {
@@ -226,8 +219,6 @@ public class ProductServiceImpl implements ProductService {
         return mapper.toCards(related);
     }
 
-    // ---- vendor / admin writes ------------------------------------------------------------------
-
     @Override
     @Transactional
     public ProductResponse createProduct(CreateProductRequest request, UserPrincipal currentUser) {
@@ -242,7 +233,6 @@ public class ProductServiceImpl implements ProductService {
         apply(product, request, store);
 
         boolean approved = currentUser.isAdmin() || currentUser.getStatus() == UserStatus.ACTIVE;
-        // Products of sellers waiting for approval are saved hidden.
         product.setIsActive(approved && !Boolean.FALSE.equals(request.getIsActive()));
 
         String sku = request.getSku() == null || request.getSku().isBlank() ? generateSku(store.getId()) : request.getSku().trim();
@@ -280,7 +270,6 @@ public class ProductServiceImpl implements ProductService {
         return mapper.toDetail(productRepository.save(product));
     }
 
-    /** Soft delete: the product disappears from the shop, carts and wishlists but stays on past orders. */
     @Override
     @Transactional
     public void deleteProduct(Long id, UserPrincipal currentUser) {
@@ -312,8 +301,6 @@ public class ProductServiceImpl implements ProductService {
         return mapper.toDetail(productRepository.save(product));
     }
 
-    // ---- helpers ------------------------------------------------------------------------------------
-
     private Product findManaged(Long id, UserPrincipal currentUser) {
         CurrentUser.require(currentUser);
         Product product = productRepository.findByIdAndDeletedAtIsNull(id)
@@ -330,7 +317,6 @@ public class ProductServiceImpl implements ProductService {
         product.setIsActive(active);
     }
 
-    /** Vendors write into their own store; admins must name the store. */
     private Store resolveTargetStore(Long requestedStoreId, UserPrincipal currentUser) {
         if (currentUser.isAdmin()) {
             if (requestedStoreId == null) {
@@ -384,6 +370,7 @@ public class ProductServiceImpl implements ProductService {
         product.setIngredients(r.getIngredients() == null ? null : JsonUtils.write(r.getIngredients()));
         product.setNutritionInfo(r.getNutritionInfo());
         product.setUsageGuide(r.getUsageGuide() == null ? null : JsonUtils.write(r.getUsageGuide()));
+        product.setTranslations(product.getTranslations().mergedWith(r.getTranslations(), TranslatableFields.PRODUCT));
     }
 
     private Category resolveCategory(Long categoryId, String categorySlug) {

@@ -7,7 +7,8 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
-/** Platform-owned store fields. */
+import java.util.Map;
+
 @Data
 public class UpdateStoreVerificationRequest {
 
@@ -21,4 +22,7 @@ public class UpdateStoreVerificationRequest {
     @Min(0) @Max(100)
     @Schema(description = "Response rate in percent")
     private Integer responseRate;
+
+    @Schema(description = "EN / RU badge text, e.g. {\"en\": {\"badgeText\": \"Official partner\"}, \"ru\": {\"badgeText\": \"Официальный партнёр\"}}")
+    private Map<String, Map<String, Object>> translations;
 }

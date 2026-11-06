@@ -5,7 +5,6 @@ import lombok.*;
 
 import java.time.LocalDateTime;
 
-/** Opaque refresh token. Only the SHA-256 hash is stored; rotated on every refresh. */
 @Entity
 @Table(name = "refresh_tokens")
 @Getter

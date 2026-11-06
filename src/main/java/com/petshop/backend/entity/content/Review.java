@@ -24,7 +24,6 @@ public class Review {
     @Column(name = "user_id", nullable = false)
     private Long userId;
 
-    /** {@link ReviewTargetType} name: PRODUCT, STORE or SERVICE_PROVIDER. */
     @Column(name = "target_type", nullable = false)
     private String targetType;
 
@@ -37,14 +36,12 @@ public class Review {
     @Column(columnDefinition = "TEXT")
     private String comment;
 
-    /** Reply by the owner of the target (vendor or provider). */
     @Column(name = "provider_reply", columnDefinition = "TEXT")
     private String providerReply;
 
     @Column(name = "reply_date")
     private LocalDateTime replyDate;
 
-    /** true when the author bought the product / ordered from the store (delivered order). */
     @Column(name = "verified_purchase")
     private Boolean verifiedPurchase;
 

@@ -1,5 +1,8 @@
 package com.petshop.backend.service.content.impl;
 
+import com.petshop.backend.i18n.Localized;
+import com.petshop.backend.i18n.TranslatableFields;
+
 import com.petshop.backend.dto.request.content.HeroSectionRequest;
 import com.petshop.backend.dto.response.content.HeroSectionResponse;
 import com.petshop.backend.entity.content.HeroSection;
@@ -24,6 +27,7 @@ public class HeroSectionServiceImpl implements HeroSectionService {
     public HeroSectionResponse createHeroSection(HeroSectionRequest request) {
         HeroSection heroSection = new HeroSection();
         heroSection.setTitle(request.getTitle());
+        heroSection.setTranslations(heroSection.getTranslations().mergedWith(request.getTranslations(), TranslatableFields.HERO));
         heroSection.setSubtitle(request.getSubtitle());
         heroSection.setBgImageUrl(request.getBgImageUrl());
         heroSection.setPrice(request.getPrice());
@@ -61,6 +65,8 @@ public class HeroSectionServiceImpl implements HeroSectionService {
                 .orElseThrow(() -> new ResourceNotFoundException("HeroSection", "id", id));
 
         heroSection.setTitle(request.getTitle());
+
+        heroSection.setTranslations(heroSection.getTranslations().mergedWith(request.getTranslations(), TranslatableFields.HERO));
         heroSection.setSubtitle(request.getSubtitle());
         heroSection.setBgImageUrl(request.getBgImageUrl());
         heroSection.setPrice(request.getPrice());
@@ -81,15 +87,18 @@ public class HeroSectionServiceImpl implements HeroSectionService {
     }
 
     private HeroSectionResponse mapToResponse(HeroSection heroSection) {
-        return new HeroSectionResponse(
+        Localized t = Localized.of(heroSection.getTranslations());
+        HeroSectionResponse response = new HeroSectionResponse(
                 heroSection.getId(),
-                heroSection.getTitle(),
-                heroSection.getSubtitle(),
+                t.text("title", heroSection.getTitle()),
+                t.text("subtitle", heroSection.getSubtitle()),
                 heroSection.getBgImageUrl(),
                 heroSection.getPrice(),
                 heroSection.getDiscountPrice(),
                 heroSection.getActive(),
                 heroSection.getCreatedAt()
         );
+        response.setTranslations(Localized.editable(heroSection.getTranslations(), "title", heroSection.getTitle(), "subtitle", heroSection.getSubtitle()));
+        return response;
     }
 }

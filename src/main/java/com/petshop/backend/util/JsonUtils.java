@@ -9,10 +9,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-/**
- * JSON helpers for TEXT columns that store lists or small objects.
- * Reading is tolerant: legacy comma-separated values are split into a list.
- */
 public final class JsonUtils {
 
     public static final ObjectMapper MAPPER = new ObjectMapper().registerModule(new JavaTimeModule());
@@ -35,7 +31,6 @@ public final class JsonUtils {
             try {
                 return new ArrayList<>(MAPPER.readValue(trimmed, new TypeReference<List<String>>() {}));
             } catch (JsonProcessingException ignored) {
-                // fall through to comma-separated parsing
             }
         }
         return new ArrayList<>(Arrays.stream(trimmed.split(","))

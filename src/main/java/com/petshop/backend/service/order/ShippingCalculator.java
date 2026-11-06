@@ -6,7 +6,6 @@ import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 
-/** "Free shipping on orders over 50 ₼": the fee applies per store order below the threshold. */
 @Component
 public class ShippingCalculator {
 

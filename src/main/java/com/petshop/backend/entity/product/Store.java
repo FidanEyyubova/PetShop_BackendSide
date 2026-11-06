@@ -1,6 +1,8 @@
 package com.petshop.backend.entity.product;
 
 import com.petshop.backend.util.StringListConverter;
+import com.petshop.backend.i18n.Translations;
+import com.petshop.backend.i18n.TranslationsConverter;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -70,10 +72,8 @@ public class Store {
     @Builder.Default
     private List<String> features = new ArrayList<>();
 
-    /** Tax id (VÖEN), 10 digits. */
     private String voen;
 
-    /** Platform-owned fields. */
     private Boolean verified;
 
     @Column(name = "badge_text")
@@ -89,6 +89,11 @@ public class Store {
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
+
+    @Convert(converter = TranslationsConverter.class)
+    @Column(columnDefinition = "TEXT")
+    @Builder.Default
+    private Translations translations = Translations.empty();
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;

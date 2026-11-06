@@ -1,5 +1,7 @@
 package com.petshop.backend.dto.response.content;
 
+import java.util.Map;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -8,7 +10,6 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
-/** Blog category (health, nutrition, grooming, training, adoption ...). */
 @Data
 @Builder
 @NoArgsConstructor
@@ -22,4 +23,7 @@ public class BlogSubCategoryResponse {
     @Schema(description = "Number of posts")
     private long count;
     private LocalDateTime createdAt;
+
+    @Schema(description = "az / en / ru versions of the text fields, for edit forms")
+    private Map<String, Map<String, Object>> translations;
 }

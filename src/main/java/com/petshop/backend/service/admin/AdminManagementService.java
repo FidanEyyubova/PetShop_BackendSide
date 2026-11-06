@@ -1,5 +1,6 @@
 package com.petshop.backend.service.admin;
 
+import com.petshop.backend.i18n.TranslatableFields;
 import com.petshop.backend.common.PayoutStatus;
 import com.petshop.backend.common.Roles;
 import com.petshop.backend.common.UserStatus;
@@ -41,7 +42,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-/** Seller approval, account suspension, payout processing and store verification. */
 @Service
 public class AdminManagementService {
 
@@ -90,10 +90,6 @@ public class AdminManagementService {
         return PageResponse.of(result, userMapper::toResponse);
     }
 
-    /**
-     * Approves / rejects sellers (vendors and service providers) and suspends accounts. Rejection or suspension revokes
-     * all sessions and hides a vendor's products and a provider's services; re-activation does not republish them.
-     */
     @Transactional
     public UserResponse updateUserStatus(Long userId, UpdateUserStatusRequest request) {
         User user = userRepository.findById(userId)
@@ -143,7 +139,6 @@ public class AdminManagementService {
         return PageResponse.of(result, AdminManagementService::toPayout);
     }
 
-    /** PENDING -> APPROVED -> COMPLETED, or PENDING/APPROVED -> REJECTED (the amount returns to the balance). */
     @Transactional
     public VendorPayoutResponse updatePayoutStatus(Long id, UpdatePayoutStatusRequest request) {
         VendorPayout payout = payoutRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Payout", "id", id));
@@ -168,6 +163,7 @@ public class AdminManagementService {
         Store store = storeRepository.findById(storeId).orElseThrow(() -> new ResourceNotFoundException("Store", "id", storeId));
         store.setVerified(request.getVerified());
         if (request.getBadgeText() != null) store.setBadgeText(request.getBadgeText().isBlank() ? null : request.getBadgeText().trim());
+        store.setTranslations(store.getTranslations().mergedWith(request.getTranslations(), TranslatableFields.STORE_BADGE));
         if (request.getResponseRate() != null) store.setResponseRate(request.getResponseRate());
         storeRepository.save(store);
         return storeService.getStore(String.valueOf(storeId));
